@@ -12,7 +12,7 @@ export default {
 					useUnifiedTopology: true,
 					useCreateIndex: true,
 				});
-				console.log("Conectou irmão!\n");
+				console.log("DB connected!\n");
 		}catch(err)
 			{
 				console.log("\nunable to connect: ", err);
