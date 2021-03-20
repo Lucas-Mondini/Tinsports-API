@@ -36,6 +36,7 @@ export default {
 
     async destroy(req: Request, res: Response){
         let {_id} = req.params;
+        console.log(_id)
         const user = await User.findOne({_id});
 
         if(!user)
@@ -46,7 +47,8 @@ export default {
     },
     
     async update(req: Request, res: Response){
-        let {_id, pass, newName, newEmail, newPass} = req.body;
+        let {pass, newName, newEmail, newPass} = req.body;
+        let {_id} = req.params;
         const user = await User.findOne({_id});
         if(!user)
             return res.status(404).json({"error" : "usuario não existe"})
