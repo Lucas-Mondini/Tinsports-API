@@ -13,4 +13,10 @@ routes.get('/user/:name', registerController.getByName);
 routes.post('/user',    registerController.save);
 routes.delete('/user/:_id', registerController.destroy);
 
+
+
+
+
+//aqui tu mexe
+
 export default routes;
