@@ -12,6 +12,10 @@ const User = new mongoose.Schema({
   pass:{
     type: String,
     required: true
+  },
+  last_pass: {
+    type: String,
+    required: false
   }
 });
 

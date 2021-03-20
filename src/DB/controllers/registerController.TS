@@ -33,8 +33,37 @@ export default {
         else 
             res.send({});
     },
-    
+
     async destroy(req: Request, res: Response){
+        let {_id} = req.params;
+        const user = await User.findOne({_id});
+
+        if(!user)
+            return res.status(404).json({"error" : "usuario não existe"})
+
+        await user.delete();
+        res.send(user);
+    },
+    
+    async update(req: Request, res: Response){
+        let {_id, pass, newName, newEmail, newPass} = req.body;
+        const user = await User.findOne({_id});
+        if(!user)
+            return res.status(404).json({"error" : "usuario não existe"})
+
+        let r = await bcrypt.compare(pass, user.pass);
+
+        if(!r)
+            return res.status(401).json({"error" : "Senha incorreta"})
+        
+        let userUpdate = {
+            "name"      : (newName)  ? newName : user.name,
+            "email"     : (newEmail) ? newEmail : user.email,
+            "pass"      : (newPass)  ? await bcrypt.hash(newPass, 10) : user.pass,
+            "last_pass" : (newPass)  ? user.pass : null
+        }
+
+        res.send(await user.update(userUpdate));
 
     }
 }
