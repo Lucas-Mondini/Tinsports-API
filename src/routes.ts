@@ -26,5 +26,6 @@ routes.get('/login', loginController.Login);
 
 //Jean
 routes.post("/games", gameController.save);
+routes.get('/games', gameController.index);
 
 export default routes;

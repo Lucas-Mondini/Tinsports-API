@@ -7,7 +7,7 @@ const Game = new mongoose.Schema({
     max: 30,
     min: 5
   },
-  gameType:{
+  type:{
     type: String,
     required: true,
     max: 30,
@@ -22,10 +22,16 @@ const Game = new mongoose.Schema({
   date:{
     type: Date,
     required: true
+  },
+  description:{
+    type: String,
+    required: false,
+    max: 120
+  },
+  value:{
+    type: Number,
+    required: false
   }
-  /* hour:{
-    type:
-  } */
 
 });
 

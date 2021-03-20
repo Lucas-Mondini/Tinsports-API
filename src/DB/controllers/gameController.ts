@@ -3,16 +3,36 @@ import Game from "../model/gameModel";
 
 export default {
 
-  save(req: Request, res: Response){
+  async index(req: Request, res: Response){
+    try{
+      let games = await Game.find();
 
-    let {name, type, location, date} = req.body;
+      res.status(200).json(games);
+    } catch(error){
+      console.log(error);
+      res.status(500).json({message: 'Ops! Something went wrong!'})
+    }
+  },
 
-    let game = new Game({
-      name, type, location, date
-    });
+  async save(req: Request, res: Response){
 
-    res.send(game);
+    try{
+      let now = Date.now();
 
-  }
+      let {name, type, location, description, value} = req.body;
 
+      let game = new Game({
+        name, type, location, description, value, date: Date.now()
+      });
+
+      await game.save();
+
+      res.status(200).send(game);
+    } catch(error){
+      console.log(error);
+      res.status(500).send("Ops! Something went wrong");
+    }
+
+  },
+  
 }
