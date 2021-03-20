@@ -18,6 +18,9 @@ routes.delete('/user/:_id', registerController.destroy);
 
 
 
+
+//Jean
 routes.post("/games", gameController.save);
+routes.get('/games', gameController.index);
 
 export default routes;
