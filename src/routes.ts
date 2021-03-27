@@ -1,31 +1,34 @@
 import { Router } from 'express';
-import registerController from "./DB/controllers/registerController";
-import loginController from "./DB/controllers/loginController";
+import userController from "./DB/controllers/userController";
 import gameController from "./DB/controllers/gameController";
 
 const routes = Router();
 
-routes.get('/', (req, res) => {
+// Get all users, for Staff only
+routes.get('/register/user',     userController.index);
 
-  res.send("oi");
-});
+// Find user by name
+routes.get('/register/user/:name', userController.getByName);
 
-//Registro
-routes.get('/register/user',     registerController.index);
-routes.get('/register/user/:name', registerController.getByName);
-routes.post('/register/user',    registerController.save);
-routes.delete('/register/user/:_id', registerController.destroy);
-routes.put('/register/user/:_id', registerController.update);
+// Register user
+routes.post('/register/user',    userController.save);
 
-//Login
-routes.get('/login', loginController.Login);
+// Delete user
+routes.delete('/register/user/:_id', userController.destroy);
 
+// Update user
+routes.put('/register/user/:_id', userController.update);
 
+// User Login
+routes.post('/login', userController.Login);
 
-
-
-//Jean
+// Get all games
 routes.post("/games", gameController.save);
+
+// Register a new game
 routes.get('/games', gameController.index);
+
+// Get game by id
+routes.get('/games/:id', gameController.get);
 
 export default routes;
