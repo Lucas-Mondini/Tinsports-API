@@ -30,9 +30,20 @@ export default {
       res.status(200).send(game);
     } catch(error){
       console.log(error);
-      res.status(500).send("Ops! Something went wrong");
+      res.status(500).json({message: "Ops! Something went wrong"});
     }
 
   },
+
+  async get(req: Request, res: Response){
+    try{
+      let {id} = req.params;
+      const game = await Game.find({_id: id});
+      res.json(game)
+    } catch(error){
+      console.log(error);
+      res.status(500).json({message: "Ops! Something went wrong"});
+    }
+  }
   
 }
