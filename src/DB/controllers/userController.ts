@@ -83,6 +83,8 @@ export default {
                 "last_pass" : (newPass)  ? user.pass : null
             }
 
+            await user.update(userUpdate);
+
             return res.status(200).json({"message" : "User update successfully"});
 
         } catch (e) {
