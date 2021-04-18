@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
 
 const GameList = new mongoose.Schema({
-  user_ID: {
+  game_ID: {
     type: String,
     required: true,
     max: 24,
     min: 24
   },
-  game_ID: {
+  user_ID: {
     type: String,
     required: true,
     max: 24,
@@ -16,4 +16,4 @@ const GameList = new mongoose.Schema({
 
 });
 
-export default mongoose.model("Game", GameList);
+export default mongoose.model("GameList", GameList);
