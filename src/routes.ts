@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import userController from "./DB/controllers/userController";
-import gameController from "./DB/controllers/gameController";
+import userController   from "./DB/controllers/userController";
+import gameController   from "./DB/controllers/gameController";
+import friendListController from "./DB/controllers/friendListController";
 
 const routes = Router();
 
@@ -30,5 +31,18 @@ routes.get('/games', gameController.index);
 
 // Get game by id
 routes.get('/games/:id', gameController.get);
+
+
+// Get all friends, for Staff only
+routes.get('/friend',           friendListController.index);
+
+// Get friend by id
+routes.get('/friend/:id',       friendListController.index);
+
+// Register friend
+routes.post('/friend',          friendListController.save);
+
+// Delete friend
+routes.delete('/friend/:_id',   friendListController.destroy);
 
 export default routes;
