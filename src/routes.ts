@@ -2,6 +2,7 @@ import { Router } from 'express';
 import userController   from "./DB/controllers/userController";
 import gameController   from "./DB/controllers/gameController";
 import friendListController from "./DB/controllers/friendListController";
+import gameListController from "./DB/controllers/gameListController";
 
 const routes = Router();
 
@@ -44,5 +45,11 @@ routes.post('/friend',          friendListController.save);
 
 // Delete friend
 routes.delete('/friend/:_id',   friendListController.destroy);
+
+// Save game list
+routes.post('/game-list',       gameListController.save);
+
+// Get game list
+routes.get('/game-list/:id',    gameListController.get)
 
 export default routes;
