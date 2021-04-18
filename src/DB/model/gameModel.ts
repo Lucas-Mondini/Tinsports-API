@@ -31,6 +31,18 @@ const Game = new mongoose.Schema({
   value:{
     type: Number,
     required: false
+  },
+  host_ID: {
+    type: String,
+    required: true,
+    max: 24,
+    min: 24
+  },
+  gameList_ID: {
+    type: String,
+    required: true,
+    max: 24,
+    min: 24
   }
 
 });
