@@ -96,24 +96,25 @@ export default {
 
     async Login(req : Request, res : Response){
         try{
-            let {email, pass} = req.body
-            const user = await User.findOne({email})
+            let {email, pass} = req.body;
+
+            const user = await User.findOne({email});
+            
             if(!user)
                 return res.status(400).json({"error" : "User not found"});
 
             if(await bcrypt.compare(pass, user.pass)){
                 let tokenSecret = String(process.env.TOKEN_SECRET);
+
                 const token = jwt.sign({
                     _id: user._id
                 }, tokenSecret);
                 
-                console.log(token);
                 return res.status(200).json({
                     _id: user._id, email: user.email, "auth-token": token,
                 });
             }
         } catch (e) {
-            console.log(e);
             return res.status(401).json({"error" : "Email or password is incorrect"});
         }
     }
