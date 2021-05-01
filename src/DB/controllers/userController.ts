@@ -111,7 +111,7 @@ export default {
                 }, tokenSecret);
                 
                 return res.status(200).json({
-                    _id: user._id, email: user.email, "auth-token": token,
+                    _id: user._id, email: user.email, auth_token: token,
                 });
             }
         } catch (e) {
