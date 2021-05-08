@@ -18,18 +18,20 @@ export default {
   async save(req: Request, res: Response){
 
     try{
-      let now = Date.now();
-
-      let {name, type, location, description, value, host_ID, gameList_ID} = req.body;
+      let {name, type, location, description, value, host_ID} = req.body;
 
       let game = new Game({
-        name, type, location, description, value, date: Date.now()
+        name, type, location, description, value, date: Date.now(), host_ID
+      });
+      
+      console.log(host_ID)
+      
+      let gameList = new GameList({
+        game_ID: game._id, user_ID: host_ID
       });
 
-      let gameList = new GameList({
-        gameList_ID, host_ID
-      })
-
+      game.gameList_ID = gameList._id;
+      
       await game.save();
       await gameList.save();
 
