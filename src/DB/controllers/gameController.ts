@@ -135,8 +135,11 @@ export default {
       const invitations = new Array<Invite>();
 
       for(let i = 0; i < gameList.length; i++){
-        let userInvitations = gameList[i].invitedUsers.filter((user: Invite) => user.user._id == userId);
-        invitations.push(userInvitations)
+        gameList[i].invitedUsers.forEach((user: Invite) => {
+          if(user.user._id == userId){
+            invitations.push(user);
+          }
+        });
       }
       
       res.status(200).json({invitations});
