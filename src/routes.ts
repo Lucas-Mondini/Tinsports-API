@@ -34,18 +34,32 @@ routes.get('/games', tokenValidation, gameController.index);
 // Get game by id
 routes.get('/games/:id', tokenValidation, gameController.get);
 
+// Get user invitations
+routes.get('/games/invite/:userId', tokenValidation,   gameController.getInvitations);
+
+// Invite user to game
+routes.post('/games/invite', tokenValidation,   gameController.inviteUser);
+
+// Invite user to game
+routes.post('/games/invite-confirmation', tokenValidation,   gameController.confirmInvitation);
+
+// Delete game
+routes.delete('/games/:id', tokenValidation, gameController.destroy);
 
 // Get all friends, for Staff only
 routes.get('/friend', tokenValidation,           friendListController.index);
 
 // Get friend by id
-routes.get('/friend/:id', tokenValidation,      friendListController.index);
+routes.get('/friend/:id', tokenValidation,      friendListController.get);
 
 // Register friend
 routes.post('/friend', tokenValidation,         friendListController.save);
 
 // Delete friend
 routes.delete('/friend/:_id', tokenValidation,  friendListController.destroy);
+
+// Get all game lists
+routes.get('/game-list', tokenValidation,  gameListController.index);
 
 // Save game list
 routes.post('/game-list', tokenValidation,      gameListController.save);

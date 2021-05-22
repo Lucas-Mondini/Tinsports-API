@@ -1,5 +1,16 @@
 import { Request, Response } from "express";
 import Friends from "../model/friendsListModel";
+import User from "../model/userModel";
+
+type Friend = {
+  friend_ID: string;
+}
+
+type UserType = {
+  _id: string;
+  name: string; 
+  email: string;
+}
 
 export default {
 
@@ -9,7 +20,6 @@ export default {
 
       res.status(200).json(friend);
     } catch(error){
-      console.log(error);
       res.status(500).json({message: 'Ops! Something went wrong!'})
     }
   },
@@ -27,7 +37,6 @@ export default {
 
       res.status(200).send(friends);
     } catch(error){
-      console.log(error);
       res.status(500).json({message: "Ops! Something went wrong"});
     }
 
@@ -35,11 +44,18 @@ export default {
 
   async get(req: Request, res: Response){
     try{
-      let {id} = req.params;
-      const friends = await Friends.find({_id: id});
-      res.json(friends)
+      const {id} = req.params;
+      const userInfoList = new Array<UserType>();
+
+      const friends = await Friends.find({user_ID: id});
+
+      for(let i = 0; i < friends.length; i++){
+        const friend = await User.findOne({_id: friends[i].friend_ID});
+        userInfoList.push(friend);
+      }
+
+      res.status(200).json({friends: userInfoList});
     } catch(error){
-      console.log(error);
       res.status(500).json({message: "Ops! Something went wrong"});
     }
   },
@@ -48,16 +64,15 @@ export default {
     try{
         let {_id} = req.params;
 
-        const Friend = await Friends.findOne({_id});
+        const friend = await Friends.findOne({_id});
 
-        if(!Friend)
-            return res.status(404).json({"error" : "Friends doesn't exist"});
+        if(!friend)
+            return res.status(404).json({message : "Friends doesn't exist"});
 
-        await Friend.delete();
-        return res.status(200).json({"message":"Friends deleted successfully"});
-        } catch (e) {
-            console.log(e);
-            return res.status(500).json({"message":"Ops! Something went wrong"});
+        await friend.delete();
+        return res.status(200).json({message:"Friends deleted successfully"});
+        } catch (error) {
+            return res.status(500).json({message:"Ops! Something went wrong"});
         }
     }
   

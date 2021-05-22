@@ -27,20 +27,27 @@ export default {
 
             const cmpEmail = await User.findOne({email});
             if(cmpEmail)
-                return res.status(400).json({"error" : "Email already in use"})
+                return res.status(400).json({message: "Email already in use"})
 
             if(pass == confpass) {
                 hash = await bcrypt.hash(pass, 10);
             }
             if(hash){
                 const user = new User({name, email, pass: hash});
-                await user.save()
-                res.send(user);
+
+                let tokenSecret = String(process.env.TOKEN_SECRET);
+
+                const token = jwt.sign({
+                    _id: user._id
+                }, tokenSecret);
+
+                await user.save();
+
+                return res.status(200).json({
+                    name: user.name, _id: user._id, email: user.email, auth_token: token,
+                });
             }
-            else 
-                res.send({});
         } catch (e) {
-            console.log(e);
             res.status(500).json({message: "Ops! Something went wrong"});
         }
     },
@@ -52,13 +59,13 @@ export default {
             const user = await User.findOne({_id});
 
             if(!user)
-                return res.status(404).json({"error" : "User doesn't exist"});
+                return res.status(404).json({message: "User doesn't exist"});
 
             await user.delete();
-            return res.status(200).json({"message":"User deleted successfully"});
+            return res.status(200).json({message: "User deleted successfully"});
         } catch (e) {
             console.log(e);
-            return res.status(500).json({"message":"Ops! Something went wrong"});
+            return res.status(500).json({message: "Ops! Something went wrong"});
         }
     },
     
@@ -85,11 +92,11 @@ export default {
 
             await user.update(userUpdate);
 
-            return res.status(200).json({"message" : "User update successfully"});
+            return res.status(200).json({message : "User update successfully"});
 
         } catch (e) {
             console.log(e);
-            return res.status(500).json({"message" : "Ops! Something went wrong"});
+            return res.status(500).json({message : "Ops! Something went wrong"});
         }
 
     },
@@ -111,11 +118,11 @@ export default {
                 }, tokenSecret);
                 
                 return res.status(200).json({
-                    _id: user._id, email: user.email, auth_token: token,
+                    name: user.name, _id: user._id, email: user.email, auth_token: token,
                 });
             }
         } catch (e) {
-            return res.status(401).json({"error" : "Email or password is incorrect"});
+            return res.status(401).json({message : "Email or password is incorrect"});
         }
     }
 }
