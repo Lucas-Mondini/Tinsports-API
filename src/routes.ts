@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import userController   from "./DB/controllers/userController";
-import gameController   from "./DB/controllers/gameController";
-import friendListController from "./DB/controllers/friendListController";
-import gameListController from "./DB/controllers/gameListController";
-import tokenValidation from './DB/controllers/tokenValidation';
+import userController   from "./controllers/userController";
+import gameController   from "./controllers/gameController";
+import friendListController from "./controllers/friendListController";
+import gameListController from "./controllers/gameListController";
+import tokenValidation from './controllers/tokenValidation';
 
 const routes = Router();
 

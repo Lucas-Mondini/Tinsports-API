@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Game     from "../model/gameModel";
 import GameList from "../model/gameListModel";
 import User from "../model/userModel";
+import FormatDate from "../utils/formatDate";
 
 type Invite = {
   _id: string;
@@ -22,9 +23,19 @@ export default {
 
   async index(req: Request, res: Response){
     try{
-      let games = await Game.find();
-      
-      res.status(200).json(games);
+      const games = await Game.find();
+      const gamesInfo = [];
+
+      for(let i = 0; i < games.length; i++){
+        const {name, type, location, description, value, host_ID, date} = games[i];
+
+        gamesInfo.push({
+          name, type, location, description, value, host_ID, 
+          date: FormatDate.toDateString(date), hour: FormatDate.hourToString(date)
+        });
+      }
+
+      res.status(200).json(gamesInfo);
     } catch(error){
       res.status(500).json({message: 'Ops! Something went wrong!'})
     }
@@ -33,10 +44,11 @@ export default {
   async save(req: Request, res: Response){
 
     try{
-      let {name, type, location, description, value, host_ID} = req.body;
-
+      let {name, type, location, description, value, host_ID, date, hour} = req.body;
+      let formatDate = FormatDate.dateToDatabase(date, hour);
+      
       let game = new Game({
-        name, type, location, description, value, date: Date.now(), host_ID
+        name, type, location, description, value, date: formatDate, host_ID, hour
       });
       
       let gameList = new GameList({
@@ -48,7 +60,7 @@ export default {
       await game.save();
       await gameList.save();
 
-      res.status(200).send({game, gameList});
+      res.status(200).send({game, gameList})//}, gameList});
     } catch(error){
       console.log(error);
       res.status(500).json({message: "Ops! Something went wrong"});
@@ -76,7 +88,14 @@ export default {
         invitedUsers.push(invitedUser);
       }
 
-      res.status(200).json({game, gameList:{
+      const {name, type, location, description, value, host_ID, date} = game;
+
+      const gameInfo = {
+        name, type, location, description, value, host_ID, 
+        date: FormatDate.toDateString(date), hour: FormatDate.hourToString(date)
+      }
+
+      res.status(200).json({gameInfo, gameList:{
         invitedUsers
       }});
     } catch(error){
