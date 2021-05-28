@@ -22,14 +22,14 @@ export default {
 
     async save(req : Request, res : Response) {
         try{
-            let {name, email, pass, confpass} = req.body;
+            let {name, email, pass, confPass} = req.body;
             let hash = null;
 
             const cmpEmail = await User.findOne({email});
             if(cmpEmail)
                 return res.status(400).json({message: "Email already in use"})
 
-            if(pass == confpass) {
+            if(pass == confPass) {
                 hash = await bcrypt.hash(pass, 10);
             }
             if(hash){

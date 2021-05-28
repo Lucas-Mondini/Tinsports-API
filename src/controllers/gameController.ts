@@ -27,10 +27,10 @@ export default {
       const gamesInfo = [];
 
       for(let i = 0; i < games.length; i++){
-        const {name, type, location, description, value, host_ID, date} = games[i];
+        const {_id, name, type, location, description, value, host_ID, date} = games[i];
 
         gamesInfo.push({
-          name, type, location, description, value, host_ID, 
+          _id, name, type, location, description, value, host_ID, 
           date: FormatDate.toDateString(date), hour: FormatDate.hourToString(date)
         });
       }
