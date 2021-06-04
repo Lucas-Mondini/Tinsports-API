@@ -4,7 +4,7 @@ const fs = require('fs');
 for (path in swaggerData.paths) {
 
   for (method in swaggerData.paths[path]) {
-    if(path == "/register/user" && method == "POST" || path == "/login") continue;
+    if(path == "/register/user" && method == "post" || path == "/login") continue;
     const params = swaggerData.paths[path][method]['parameters'].push({
       name: "auth_token",
       in: "header"
