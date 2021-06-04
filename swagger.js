@@ -10,7 +10,7 @@ const doc = {
       url: 'https://spdx.org/licenses/MIT.html',
     },
   },
-  basePath: "/login",
+  basePath: "/",
   schemes: [
     "http", "https"
   ],
