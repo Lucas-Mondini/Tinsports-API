@@ -3,3 +3,5 @@
 .editorconfig
 .gitignore
 .*
+swagger-output.json
+swagger-output.txt
