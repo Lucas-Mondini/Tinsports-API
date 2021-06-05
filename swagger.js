@@ -17,13 +17,7 @@ const doc = {
   servers: [{
     url: 'http://localhost:3000',
     description: 'Development server',
-  }, ],
-  parameters: [
-    {
-     name: "auth_token",
-     in: "header"
-    },
- ],
+  }, ]
 };
 
 const outputFile = './swagger-output.json';
