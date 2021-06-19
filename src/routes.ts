@@ -44,7 +44,7 @@ routes.post('/games/invite', tokenValidation, gameController.inviteUser);
 routes.post('/games/invite-confirmation', tokenValidation, gameController.confirmInvitation);
 
 // Delete game
-routes.delete('/games/:id', tokenValidation, gameController.destroy);
+routes.post('/games/:id/delete', tokenValidation, gameController.destroy);
 
 // Get all friends, for Staff only
 routes.get('/friend', tokenValidation, friendListController.index);

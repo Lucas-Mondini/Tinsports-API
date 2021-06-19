@@ -55,7 +55,7 @@ export default {
     async destroy(req: Request, res: Response){
         try{
             let {_id} = req.params;
-    
+
             const user = await User.findOne({_id});
 
             if(!user)
@@ -68,7 +68,7 @@ export default {
             return res.status(500).json({message: "Ops! Something went wrong"});
         }
     },
-    
+
     async update(req: Request, res: Response){
         try{
 
@@ -82,7 +82,7 @@ export default {
 
             if(!r)
                 return res.status(401).json({"error" : "Email or password is incorrect"});
-            
+
             let userUpdate = {
                 "name"      : (newName)  ? newName : user.name,
                 "email"     : (newEmail) ? newEmail : user.email,
@@ -106,7 +106,7 @@ export default {
             let {email, pass} = req.body;
 
             const user = await User.findOne({email});
-            
+
             if(!user)
                 return res.status(400).json({"error" : "User not found"});
 
@@ -116,7 +116,7 @@ export default {
                 const token = jwt.sign({
                     _id: user._id
                 }, tokenSecret);
-                
+
                 return res.status(200).json({
                     name: user.name, _id: user._id, email: user.email, auth_token: token,
                 });
