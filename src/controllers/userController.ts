@@ -12,7 +12,7 @@ export default {
     async getByName(req : Request, res : Response) {
         try{
             let {name} = req.params;
-            const user = await User.find({name});
+            const user = await User.find({name: {$regex: '.*' + name + '.*'}});
             res.json(user);
         } catch (e) {
             console.log(e);
