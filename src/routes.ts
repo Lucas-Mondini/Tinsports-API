@@ -13,6 +13,9 @@ routes.get('/register/user', tokenValidation, userController.index);
 // Find user by name
 routes.get('/register/user/:name', tokenValidation, userController.getByName);
 
+// Find user by Id
+routes.get('/user/:id', tokenValidation, userController.getById);
+
 // Register user
 routes.post('/register/user', userController.save);
 

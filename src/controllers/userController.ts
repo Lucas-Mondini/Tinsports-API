@@ -20,6 +20,17 @@ export default {
         }
     },
 
+    async getById(req : Request, res : Response) {
+        try{
+            let {id} = req.params;
+            const user = await User.findOne({_id: id});
+            res.json(user);
+        } catch (e) {
+            console.log(e);
+            res.status(500).json({message: "Ops! Something went wrong"});
+        }
+    },
+
     async save(req : Request, res : Response) {
         try{
             let {name, email, pass, confPass} = req.body;
