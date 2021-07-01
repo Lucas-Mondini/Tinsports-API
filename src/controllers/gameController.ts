@@ -1,45 +1,93 @@
 import { Request, Response } from "express";
 import Game     from "../model/gameModel";
 import GameList from "../model/gameListModel";
+import Friends from "../model/friendsListModel";
 import User from "../model/userModel";
 import FormatDate from "../utils/formatDate";
 import FormatStrings from "../utils/formatStrings";
 
-export default {
+export default class GameController {
 
-  async index(req: Request, res: Response){
+  static async index(req: Request, res: Response){
+    const {id} = req.body;
+
     try{
-      const games = await Game.find();
-      const gamesInfo = [];
+      const friendsGames = await GameController.getFriendsGames(id);
+      //const invitedGames = await GameController.getInvitedGames(id);
+      const userGames = await Game.find({host_ID: id});
 
-      for (let game in games) {
-        const {_id, name, type, location, description, value, host_ID, gameList_ID, date} = games[game];
-        const gameList = await GameList.findOne({_id: gameList_ID});
-
-        const fiveDays = 5 * 24 * 60 * 60 * 1000;
-        let now = Number(Date.now());
-        let gameDate = Number(new Date(date)) + fiveDays;
-
-        if (gameDate < now) {
-          games[game].delete();
-          gameList.delete();
-          continue;
-        }
-
-        gamesInfo.push({
-          _id, name, type, location, description, value: FormatStrings.formatMoneyToUser(value), host_ID,
-          date: FormatDate.toDateString(date), hour: FormatDate.hourToString(date),
-          gameList
-        });
-      }
-
-      res.status(200).json(gamesInfo);
+      res.status(200).json({friendsGames, userGames});
     } catch(error){
       res.status(500).json({message: error.message});
     }
-  },
+  }
 
-  async save(req: Request, res: Response){
+  static async formatGames(games: Array<any>){
+    const gamesInfo = [];
+
+    for (let game in games) {
+      const {_id, name, type, location, description, value, host_ID, gameList_ID, date} = games[game];
+      const gameList = await GameList.findOne({_id: gameList_ID});
+
+      const fiveDays = 5 * 24 * 60 * 60 * 1000;
+      let now = Number(Date.now());
+      let gameDate = Number(new Date(date)) + fiveDays;
+
+      if (gameDate < now) {
+        games[game].delete();
+        gameList.delete();
+        continue;
+      }
+
+      gamesInfo.push({
+        _id, name, type, location, description, value: FormatStrings.formatMoneyToUser(value), host_ID,
+        date: FormatDate.toDateString(date), hour: FormatDate.hourToString(date),
+        gameList
+      });
+    }
+
+    return gamesInfo;
+  }
+
+  static async getFriendsGames(id: string) {
+    const friends = await Friends.find({user_ID: id});
+    const friendsGames = new Array();
+
+    for (const friend in friends) {
+      const game = Game.find({host_ID: friends[friend].friend_ID});
+
+      friendsGames.push(game);
+    }
+
+    return GameController.formatGames(friendsGames);
+  }
+
+  static async getUserGames(id: string) {
+    const userGames = Game.find({user_ID: id});
+
+    return GameController.formatGames(userGames);
+  }
+
+  static async getInvitedGames(id: string) {
+    const gameLists = await GameList.find();
+    const invitedGames = new Array();
+
+    for (const gameList in gameLists) {
+      for (let invited in gameLists[gameList].invitedUsers){
+        const userId = gameLists[gameList].invitedUsers[invited].user._id
+
+        if (userId === id) {
+          const game = await Game.findOne({gameList_ID: gameLists[gameList]._id});
+
+          invitedGames.push(game);
+        }
+      }
+    }
+
+    return GameController.formatGames(invitedGames);
+  }
+
+  static async save(req: Request, res: Response){
 
     try{
       let {name, type, location, description, value, host_ID, date, hour} = req.body;
@@ -71,9 +119,9 @@ export default {
       res.status(500).json({message: "Ops! Something went wrong"});
     }
 
-  },
+  }
 
-  async get(req: Request, res: Response){
+  static async get(req: Request, res: Response){
     try{
       let {id} = req.params;
       const game = await Game.findOne({_id: id});
@@ -108,9 +156,9 @@ export default {
     } catch(error) {
       res.status(500).json({message: "Ops! Something went wrong"});
     }
-  },
+  }
 
-  async inviteUser(req: Request, res: Response){
+  static async inviteUser(req: Request, res: Response){
     try{
       let {userId, gameListId} = req.body;
 
@@ -130,9 +178,9 @@ export default {
     } catch(error){
       res.status(500).json({message: "Ops! Something went wrong"});
     }
-  },
+  }
 
-  async confirmInvitation(req: Request, res: Response){
+  static async confirmInvitation(req: Request, res: Response){
     try{
       let {inviteId, gameListId} = req.body;
 
@@ -150,9 +198,9 @@ export default {
     } catch(error){
       res.status(500).json({message: "Ops! Something went wrong"});
     }
-  },
+  }
 
-  async getInvitations(req: Request, res: Response){
+  static async getInvitations(req: Request, res: Response){
     try{
       let {userId} = req.params;
 
@@ -171,9 +219,9 @@ export default {
     } catch(error){
       res.status(500).json({message: "Ops! Something went wrong"});
     }
-  },
+  }
 
-  async destroy(req: Request, res: Response){
+  static async destroy(req: Request, res: Response){
     try{
       const {id} = req.params;
       const {host_ID} = req.body
