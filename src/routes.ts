@@ -50,7 +50,7 @@ routes.post('/games/invite-confirmation', tokenValidation, gameController.confir
 routes.post('/games/:id/delete', tokenValidation, gameController.destroy);
 
 // Get all friends, for Staff only
-routes.get('/friend', tokenValidation, friendListController.index);
+//routes.get('/friend', tokenValidation, friendListController.index);
 
 // Get friend by id
 routes.get('/friend/:id', tokenValidation, friendListController.get);

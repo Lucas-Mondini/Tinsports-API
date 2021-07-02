@@ -7,18 +7,13 @@ const GameList = new mongoose.Schema({
     max: 24,
     min: 24
   },
-  host_ID: {
+  user_ID: {
     type: String,
     required: true,
     max: 24,
     min: 24
   },
-  invitedUsers: [
-    {user: {
-      _id: String,
-      confirmed: Boolean,
-    }}
-  ]
+  confirmed: {type: Boolean}
 
 });
 

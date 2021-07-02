@@ -1,14 +1,11 @@
 import { Request, Response } from "express";
 import Friends from "../model/friendsListModel";
 import User from "../model/userModel";
-
-type Friend = {
-  friend_ID: string;
-}
+import {ObjectId} from "mongoose";
 
 type UserType = {
   _id: string;
-  name: string; 
+  name: string;
   email: string;
 }
 
@@ -47,16 +44,21 @@ export default {
       const {id} = req.params;
       const userInfoList = new Array<UserType>();
 
-      const friends = await Friends.find({user_ID: id});
+      const friends = await Friends.find().or([
+        {user_ID: id},
+        {friend_ID: id}
+      ]);
 
-      for(let i = 0; i < friends.length; i++){
-        const friend = await User.findOne({_id: friends[i].friend_ID});
-        userInfoList.push(friend);
+      if (friends.length > 0) {
+        for (let friend in friends) {
+          const user = await User.findOne({_id: friends[friend].friend_ID});
+          userInfoList.push(user);
+        }
       }
 
       res.status(200).json({friends: userInfoList});
     } catch(error){
-      res.status(500).json({message: "Ops! Something went wrong"});
+      res.status(500).json({message: error.message});
     }
   },
 
@@ -75,5 +77,4 @@ export default {
             return res.status(500).json({message:"Ops! Something went wrong"});
         }
     }
-  
 }

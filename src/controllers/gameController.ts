@@ -13,10 +13,10 @@ export default class GameController {
 
     try{
       const friendsGames = await GameController.getFriendsGames(id);
-      //const invitedGames = await GameController.getInvitedGames(id);
-      const userGames = await Game.find({host_ID: id});
+      const invitedGames = await GameController.getInvitedGames(id);
+      const userGames = await GameController.getUserGames(id);
 
-      res.status(200).json({friendsGames, userGames});
+      res.status(200).json({invitedGames, friendsGames, userGames});
     } catch(error){
       res.status(500).json({message: error.message});
     }
@@ -26,23 +26,19 @@ export default class GameController {
     const gamesInfo = [];
 
     for (let game in games) {
-      const {_id, name, type, location, description, value, host_ID, gameList_ID, date} = games[game];
-      const gameList = await GameList.findOne({_id: gameList_ID});
-
+      const {_id, name, type, location, description, value, host_ID, date} = games[game];
       const fiveDays = 5 * 24 * 60 * 60 * 1000;
       let now = Number(Date.now());
       let gameDate = Number(new Date(date)) + fiveDays;
 
       if (gameDate < now) {
         games[game].delete();
-        gameList.delete();
         continue;
       }
 
       gamesInfo.push({
         _id, name, type, location, description, value: FormatStrings.formatMoneyToUser(value), host_ID,
-        date: FormatDate.toDateString(date), hour: FormatDate.hourToString(date),
-        gameList
+        date: FormatDate.toDateString(date), hour: FormatDate.hourToString(date)
       });
     }
 
@@ -51,37 +47,41 @@ export default class GameController {
 
   static async getFriendsGames(id: string) {
     const friends = await Friends.find({user_ID: id});
+    const friends2 = await Friends.find({friend_ID: id});
     const friendsGames = new Array();
 
-    for (const friend in friends) {
-      const game = Game.find({host_ID: friends[friend].friend_ID});
+    if (friends.length > 0) {
+      for (const friend in friends) {
+        const games = await Game.find({host_ID: friends[friend].friend_ID});
 
-      friendsGames.push(game);
+        friendsGames.push(...games);
+      }
+    }
+
+    if (friends2.length > 0) {
+      for (const friend2 in friends2) {
+        const games2 = await Game.find({host_ID: friends2[friend2].user_ID});
+        friendsGames.push(...games2);
+      }
     }
 
     return GameController.formatGames(friendsGames);
   }
 
   static async getUserGames(id: string) {
-    const userGames = Game.find({user_ID: id});
+    const userGames = await Game.find({host_ID: id});
 
     return GameController.formatGames(userGames);
   }
 
   static async getInvitedGames(id: string) {
-    const gameLists = await GameList.find();
+    const gameLists = await GameList.find({user_ID: id});
     const invitedGames = new Array();
 
     for (const gameList in gameLists) {
-      for (let invited in gameLists[gameList].invitedUsers){
-        const userId = gameLists[gameList].invitedUsers[invited].user._id
+      const games = await Game.find({_id: gameLists[gameList].game_ID});
 
-        if (userId === id) {
-          const game = await Game.findOne({gameList_ID: gameLists[gameList]._id});
-
-          invitedGames.push(game);
-        }
-      }
+      invitedGames.push(...games);
     }
 
     return GameController.formatGames(invitedGames);
@@ -97,12 +97,6 @@ export default class GameController {
         name, type, location, description, value: FormatStrings.formatMoneyToDatabase(value), date: formatDate, host_ID, hour
       });
 
-      let gameList = new GameList({
-        game_ID: game._id, host_ID
-      });
-
-      game.gameList_ID = gameList._id;
-
       let now = Number(Date.now());
       let gameDate = Number(new Date(date));
 
@@ -112,9 +106,8 @@ export default class GameController {
       }
 
       await game.save();
-      await gameList.save();
 
-      res.status(200).send({game, gameList});
+      res.status(200).send(game);
     } catch(error){
       res.status(500).json({message: "Ops! Something went wrong"});
     }
@@ -125,21 +118,7 @@ export default class GameController {
     try{
       let {id} = req.params;
       const game = await Game.findOne({_id: id});
-      const gameList = await GameList.findOne({_id: game.gameList_ID});
-      const invitedUsers = new Array();
-
-      for(let invited in gameList.invitedUsers){
-        let user = await User.findOne({_id: gameList.invitedUsers[invited].user._id});
-
-        const invitedUser = {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          confirmed: gameList.invitedUsers[invited].user.confirmed
-        }
-
-        invitedUsers.push(invitedUser);
-      }
+      const gameList = await GameList.find({game_ID: game._id});
 
       const {_id, name, type, location, description, value, host_ID, gameList_ID, date} = game;
 
@@ -147,9 +126,7 @@ export default class GameController {
         _id,
         name, type, location, description, value, host_ID, gameList_ID,
         date: FormatDate.toDateString(date), hour: FormatDate.hourToString(date),
-        gameList: {
-          invitedUsers: invitedUsers
-        }
+        gameList
       }
 
       res.status(200).json(gameInfo);
@@ -160,18 +137,14 @@ export default class GameController {
 
   static async inviteUser(req: Request, res: Response){
     try{
-      let {userId, gameListId} = req.body;
+      let {user_ID, game_ID} = req.body;
 
-      const user = {
-        user: {
-          _id: userId,
-          confirmed: false
-        }
-      }
+      const gameList = new GameList({
+        game_ID,
+        user_ID,
+        confirmed: false
+      });
 
-      const gameList = await GameList.findOne({_id: gameListId});
-
-      gameList.invitedUsers.push(user);
       gameList.save();
 
       res.status(200).json({gameList});
@@ -238,7 +211,6 @@ export default class GameController {
 
       res.status(200).json({message: "Game deleted successfully"});
     } catch(error) {
-      console.log(error);
       res.status(500).json({message: "Ops! Something went wrong"});
     }
   }
