@@ -5,6 +5,7 @@ import Friends from "../model/friendsListModel";
 import User from "../model/userModel";
 import FormatDate from "../utils/formatDate";
 import FormatStrings from "../utils/formatStrings";
+import gameListController from "./gameListController";
 
 export default class GameController {
 
@@ -192,18 +193,25 @@ export default class GameController {
       const {host_ID} = req.body
 
       const game = await Game.findOne({_id: id});
-      const gameList = await GameList.findOne({_id: game.gameList_ID});
+      const gameLists = await GameList.find({game_ID: id});
 
       if (game.host_ID !== host_ID) {
         return res.status(401).json({message: "Only the event creator can delete it"});
       }
 
-      game.delete();
-      gameList.delete();
+      await game.delete();
+      await gameListController.destroyGameListArray(gameLists);
 
       res.status(200).json({message: "Game deleted successfully"});
     } catch(error) {
+      console.log(error)
       res.status(500).json({message: "Ops! Something went wrong"});
+    }
+  }
+
+  static async destroyGamesArray(games: Array<any>) {
+    for (const game of games) {
+      game.delete();
     }
   }
 }

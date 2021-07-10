@@ -55,5 +55,11 @@ export default {
     } catch (error) {
       return res.status(500).json({"message":"Ops! Something went wrong"});
     }
+  },
+
+  async destroyGameListArray(gameLists: Array<any>) {
+    for(const gameList of gameLists) {
+      await gameList.delete();
+    }
   }
 }

@@ -1,7 +1,11 @@
 import User from "../model/userModel";
+import Game from "../model/gameModel";
+import GameList from "../model/gameListModel";
 import {Request, Response} from 'express';
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import gameListController from "./gameListController";
+import gameController from "./gameController";
 
 export default {
     async index(req : Request, res : Response) {
@@ -68,9 +72,20 @@ export default {
             let {_id} = req.params;
 
             const user = await User.findOne({_id});
+            const games = await Game.find({host_ID: _id});
+            const invitations = await GameList.find({user_ID: _id});
+            const gameLists = [...invitations];
 
             if(!user)
                 return res.status(404).json({message: "User doesn't exist"});
+
+            for (const game of games) {
+                const lists = await GameList.find({game_ID: game._id});
+                gameLists.push(...lists);
+            }
+
+            await gameListController.destroyGameListArray(gameLists);
+            await gameController.destroyGamesArray(games);
 
             await user.delete();
             return res.status(200).json({message: "User deleted successfully"});
