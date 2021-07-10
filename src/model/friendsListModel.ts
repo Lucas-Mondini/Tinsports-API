@@ -12,7 +12,10 @@ const Friends = new mongoose.Schema({
         required: true,
         max: 24,
         min: 24
-      }
+      },
+    confirmed: {
+      type: Boolean,
+    }
 });
 
 export default mongoose.model("Friends", Friends);

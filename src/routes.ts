@@ -32,7 +32,7 @@ routes.post('/login', userController.Login);
 routes.post("/games", tokenValidation, gameController.save);
 
 // Register a new game
-routes.get('/games', tokenValidation, gameController.index);
+routes.get('/games/home/:id', tokenValidation, gameController.index);
 
 // Get game by id
 routes.get('/games/:id', tokenValidation, gameController.get);
@@ -69,5 +69,8 @@ routes.post('/game-list', tokenValidation, gameListController.save);
 
 // Get game list
 routes.get('/game-list/:id', tokenValidation, gameListController.get);
+
+// Delete Game list
+routes.delete('/game-list/:_id/delete', tokenValidation, gameListController.destroy);
 
 export default routes;

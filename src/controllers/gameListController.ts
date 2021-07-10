@@ -43,18 +43,17 @@ export default {
 
   async destroy(req: Request, res: Response){
     try{
-        let {_id} = req.params;
+      let {_id} = req.params;
 
-        const gameList = await GameList.findOne({_id});
+      const gameList = await GameList.findOne({_id});
 
-        if(!gameList)
-            return res.status(404).json({"error" : "GameList doesn't exist"});
+      if(!gameList) return res.status(404).json({"error" : "GameList doesn't exist"});
 
-        await gameList.delete();
-        return res.status(200).json({"message":"GameList deleted successfully"});
-        } catch (error) {
-            return res.status(500).json({"message":"Ops! Something went wrong"});
-        }
+      await gameList.delete();
+
+      return res.status(200).json({"message":"GameList deleted successfully"});
+    } catch (error) {
+      return res.status(500).json({"message":"Ops! Something went wrong"});
     }
-  
+  }
 }

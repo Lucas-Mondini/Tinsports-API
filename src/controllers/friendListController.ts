@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import Friends from "../model/friendsListModel";
 import User from "../model/userModel";
-import {ObjectId} from "mongoose";
 
 type UserType = {
   _id: string;
@@ -27,7 +26,7 @@ export default {
       let {user_ID, friend_ID} = req.body;
 
       let friends = new Friends({
-        user_ID, friend_ID
+        user_ID, friend_ID, confirmed: false
       });
 
       await friends.save();
@@ -50,8 +49,8 @@ export default {
       ]);
 
       if (friends.length > 0) {
-        for (let friend in friends) {
-          const user = await User.findOne({_id: friends[friend].friend_ID});
+        for (let friend of friends) {
+          const user = await User.findOne({_id: friend.friend_ID});
           userInfoList.push(user);
         }
       }

@@ -9,7 +9,7 @@ import FormatStrings from "../utils/formatStrings";
 export default class GameController {
 
   static async index(req: Request, res: Response){
-    const {id} = req.body;
+    const {id} = req.params;
 
     try{
       const friendsGames = await GameController.getFriendsGames(id);
@@ -25,20 +25,19 @@ export default class GameController {
   static async formatGames(games: Array<any>){
     const gamesInfo = [];
 
-    for (let game in games) {
-      const {_id, name, type, location, description, value, host_ID, date} = games[game];
+    for (let game of games) {
+      const {_id, name, location, host_ID, date} = game;
       const fiveDays = 5 * 24 * 60 * 60 * 1000;
       let now = Number(Date.now());
       let gameDate = Number(new Date(date)) + fiveDays;
 
       if (gameDate < now) {
-        games[game].delete();
+        game.delete();
         continue;
       }
 
       gamesInfo.push({
-        _id, name, type, location, description, value: FormatStrings.formatMoneyToUser(value), host_ID,
-        date: FormatDate.toDateString(date), hour: FormatDate.hourToString(date)
+        _id, name, location, host_ID, hour: FormatDate.hourToString(date)
       });
     }
 
@@ -51,16 +50,16 @@ export default class GameController {
     const friendsGames = new Array();
 
     if (friends.length > 0) {
-      for (const friend in friends) {
-        const games = await Game.find({host_ID: friends[friend].friend_ID});
+      for (const friend of friends) {
+        const games = await Game.find({host_ID: friend.friend_ID});
 
         friendsGames.push(...games);
       }
     }
 
     if (friends2.length > 0) {
-      for (const friend2 in friends2) {
-        const games2 = await Game.find({host_ID: friends2[friend2].user_ID});
+      for (const friend2 of friends2) {
+        const games2 = await Game.find({host_ID: friend2.user_ID});
         friendsGames.push(...games2);
       }
     }
@@ -78,8 +77,8 @@ export default class GameController {
     const gameLists = await GameList.find({user_ID: id});
     const invitedGames = new Array();
 
-    for (const gameList in gameLists) {
-      const games = await Game.find({_id: gameLists[gameList].game_ID});
+    for (const gameList of gameLists) {
+      const games = await Game.find({_id: gameList.game_ID});
 
       invitedGames.push(...games);
     }
@@ -118,15 +117,21 @@ export default class GameController {
     try{
       let {id} = req.params;
       const game = await Game.findOne({_id: id});
-      const gameList = await GameList.find({game_ID: game._id});
+      const gameLists = await GameList.find({game_ID: game._id});
+      const users = new Array();
 
-      const {_id, name, type, location, description, value, host_ID, gameList_ID, date} = game;
+      for (const gameList of gameLists) {
+        const user = await User.findOne({_id: gameList.user_ID});
+        users.push({_id: gameList._id, user_ID: user._id, name: user.name, email: user.email, confirmed: gameList.confirmed});
+      }
+
+      const {_id, name, type, location, description, value, host_ID, date} = game;
 
       const gameInfo = {
         _id,
-        name, type, location, description, value, host_ID, gameList_ID,
+        name, type, location, description, value, host_ID,
         date: FormatDate.toDateString(date), hour: FormatDate.hourToString(date),
-        gameList
+        gameList: users
       }
 
       res.status(200).json(gameInfo);
@@ -155,15 +160,11 @@ export default class GameController {
 
   static async confirmInvitation(req: Request, res: Response){
     try{
-      let {inviteId, gameListId} = req.body;
+      let {_id, user_ID} = req.body;
 
-      const gameList = await GameList.findOne({_id: gameListId});
+      const gameList = await GameList.findOne({_id, user_ID});
 
-      for (let invited in gameList.invitedUsers) {
-        if(gameList.invitedUsers[invited]._id == inviteId){
-          gameList.invitedUsers[invited].user.confirmed = true;
-        }
-      }
+      gameList.confirmed = true;
 
       gameList.save();
 
@@ -177,18 +178,9 @@ export default class GameController {
     try{
       let {userId} = req.params;
 
-      const gameLists = await GameList.find();
-      const invitations = new Array();
+      const gameLists = await GameList.find({_id: userId});
 
-      for (let gameList in gameLists) {
-        for (let invited in gameLists[gameList].invitedUsers) {
-          if (gameLists[gameList].invitedUsers[invited].user._id == userId) {
-            invitations.push(gameLists[gameList].invitedUsers[invited].user);
-          }
-        }
-      }
-
-      res.status(200).json({invitations});
+      res.status(200).json(gameLists);
     } catch(error){
       res.status(500).json({message: "Ops! Something went wrong"});
     }
