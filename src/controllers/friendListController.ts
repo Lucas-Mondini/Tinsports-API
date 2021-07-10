@@ -2,12 +2,6 @@ import { Request, Response } from "express";
 import Friends from "../model/friendsListModel";
 import User from "../model/userModel";
 
-type UserType = {
-  _id: string;
-  name: string;
-  email: string;
-}
-
 export default {
 
   async index(req: Request, res: Response){
@@ -41,7 +35,7 @@ export default {
   async get(req: Request, res: Response){
     try{
       const {id} = req.params;
-      const userInfoList = new Array<UserType>();
+      const userInfoList = new Array();
 
       const friends = await Friends.find().or([
         {user_ID: id},
