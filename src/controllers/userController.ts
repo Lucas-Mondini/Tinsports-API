@@ -1,18 +1,29 @@
-import User from "../model/userModel";
-import Game from "../model/gameModel";
-import GameList from "../model/gameListModel";
+import User from "../model/UserModel";
+import Game from "../model/GameModel";
+import GameList from "../model/GameListModel";
+import Friends from "../model/FriendsListModel";
 import {Request, Response} from 'express';
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import gameListController from "./gameListController";
-import gameController from "./gameController";
+import DefaultController from "./DefaultController";
 
-export default {
+export default class UserController extends DefaultController {
+    /**
+     *  Method to get all users from database
+     * @param req Request
+     * @param res Response
+     */
     async index(req : Request, res : Response) {
         const users = await User.find();
-        res.json(users);
-    },
 
+        res.json(users);
+    }
+
+    /**
+     *  Get all users by name
+     * @param req Request
+     * @param res Response
+     */
     async getByName(req : Request, res : Response) {
         try{
             let {name} = req.params;
@@ -22,8 +33,13 @@ export default {
             console.log(e);
             res.status(500).json({message: "Ops! Something went wrong"});
         }
-    },
+    }
 
+    /**
+     *  Get all users by id
+     * @param req Request
+     * @param res Response
+     */
     async getById(req : Request, res : Response) {
         try{
             let {id} = req.params;
@@ -33,8 +49,13 @@ export default {
             console.log(e);
             res.status(500).json({message: "Ops! Something went wrong"});
         }
-    },
+    }
 
+    /**
+     * Save a new user
+     * @param req Request
+     * @param res Response
+     */
     async save(req : Request, res : Response) {
         try{
             let {name, email, pass, confPass} = req.body;
@@ -65,8 +86,13 @@ export default {
         } catch (e) {
             res.status(500).json({message: "Ops! Something went wrong"});
         }
-    },
+    }
 
+    /**
+     *  Delete user, his games, game lists and friends
+     * @param req Request
+     * @param res Response
+     */
     async destroy(req: Request, res: Response){
         try{
             let {_id} = req.params;
@@ -74,6 +100,10 @@ export default {
             const user = await User.findOne({_id});
             const games = await Game.find({host_ID: _id});
             const invitations = await GameList.find({user_ID: _id});
+            const friends = await Friends.find().or([
+                {user_ID: _id},
+                {friend_ID: _id}
+            ]);
             const gameLists = [...invitations];
 
             if(!user)
@@ -84,8 +114,9 @@ export default {
                 gameLists.push(...lists);
             }
 
-            await gameListController.destroyGameListArray(gameLists);
-            await gameController.destroyGamesArray(games);
+            await this.destroyObjectArray(gameLists);
+            await this.destroyObjectArray(games);
+            await this.destroyObjectArray(friends);
 
             await user.delete();
             return res.status(200).json({message: "User deleted successfully"});
@@ -93,8 +124,13 @@ export default {
             console.log(e);
             return res.status(500).json({message: "Ops! Something went wrong"});
         }
-    },
+    }
 
+    /**
+     *  Update user info
+     * @param req Request
+     * @param res Response
+     */
     async update(req: Request, res: Response){
         try{
 
@@ -102,21 +138,22 @@ export default {
             let {_id} = req.params;
             const user = await User.findOne({_id});
             if(!user)
-                return res.status(404).json({"error" : "User doesn't exist"});
+                return res.status(404).json({error : "User doesn't exist"});
 
             let r = await bcrypt.compare(pass, user.pass);
 
             if(!r)
-                return res.status(401).json({"error" : "Email or password is incorrect"});
+                return res.status(401).json({error : "Email or password is incorrect"});
 
             let userUpdate = {
-                "name"      : (newName)  ? newName : user.name,
-                "email"     : (newEmail) ? newEmail : user.email,
-                "pass"      : (newPass)  ? await bcrypt.hash(newPass, 10) : user.pass,
-                "last_pass" : (newPass)  ? user.pass : null
+                name      : (newName)  ? newName : user.name,
+                email     : (newEmail) ? newEmail : user.email,
+                pass      : (newPass)  ? await bcrypt.hash(newPass, 10) : user.pass,
+                last_pass : (newPass)  ? user.pass : null
             }
 
-            await user.update(userUpdate);
+            await user.updateOne(userUpdate);
+            await user.save();
 
             return res.status(200).json({message : "User update successfully"});
 
@@ -125,16 +162,21 @@ export default {
             return res.status(500).json({message : "Ops! Something went wrong"});
         }
 
-    },
+    }
 
-    async Login(req : Request, res : Response){
+    /**
+     * Method that makes the login
+     * @param req Request
+     * @param res Response
+     */
+    async login(req : Request, res : Response){
         try{
             let {email, pass} = req.body;
 
             const user = await User.findOne({email});
 
             if(!user)
-                return res.status(400).json({"error" : "User not found"});
+                return res.status(400).json({error : "User not found"});
 
             if(await bcrypt.compare(pass, user.pass)){
                 let tokenSecret = String(process.env.TOKEN_SECRET);

@@ -1,5 +1,15 @@
 import mongoose from 'mongoose';
 
+export type GameType = {
+  name: string;
+  type: string;
+  location: string;
+  date: string;
+  description: string;
+  value: number;
+  host_ID: string;
+}
+
 const Game = new mongoose.Schema({
   name: {
     type: String,
@@ -38,7 +48,6 @@ const Game = new mongoose.Schema({
     max: 24,
     min: 24
   }
-
 });
 
 export default mongoose.model("Game", Game);

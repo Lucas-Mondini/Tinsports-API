@@ -1,5 +1,11 @@
 import mongoose from 'mongoose';
 
+export type FriendsType = {
+  user_ID: string;
+  friend_ID: string;
+  confirmed: boolean;
+}
+
 const Friends = new mongoose.Schema({
     user_ID: {
         type: String,

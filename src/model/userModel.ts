@@ -1,5 +1,12 @@
 const mongoose = require('mongoose');
 
+export type UserType = {
+  name: string;
+  email: string;
+  password: string;
+  last_pass: string;
+}
+
 const User = new mongoose.Schema({
   name:{
     type: String,

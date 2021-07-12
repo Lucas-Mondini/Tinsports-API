@@ -1,9 +1,14 @@
 import { Request, Response } from "express";
-import Friends from "../model/friendsListModel";
-import User from "../model/userModel";
+import Friends from "../model/FriendsListModel";
+import User from "../model/UserModel";
 
-export default {
+export default class FriendListController {
 
+  /**
+   *  Get all friends relations
+   * @param req Request
+   * @param res Response
+   */
   async index(req: Request, res: Response){
     try{
       let friend = await Friends.find();
@@ -12,8 +17,13 @@ export default {
     } catch(error){
       res.status(500).json({message: 'Ops! Something went wrong!'})
     }
-  },
+  }
 
+  /**
+   * Save new friend relation
+   * @param req Request
+   * @param res Response
+   */
   async save(req: Request, res: Response){
 
     try{
@@ -30,8 +40,13 @@ export default {
       res.status(500).json({message: "Ops! Something went wrong"});
     }
 
-  },
+  }
 
+  /**
+   *  Get friend relation by id
+   * @param req Request
+   * @param res Response
+   */
   async get(req: Request, res: Response){
     try{
       const {id} = req.params;
@@ -53,8 +68,13 @@ export default {
     } catch(error){
       res.status(500).json({message: error.message});
     }
-  },
+  }
 
+  /**
+   *  Delete friend relation
+   * @param req Request
+   * @param res Response
+   */
   async destroy(req: Request, res: Response){
     try{
         let {_id} = req.params;

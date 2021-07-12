@@ -1,8 +1,14 @@
 import { Request, Response } from "express";
-import GameList from "../model/gameListModel";
+import GameList from "../model/GameListModel";
+import DefaultController from "./DefaultController";
 
-export default {
+export default class GameListController extends DefaultController{
 
+  /**
+   * Get all game lists
+   * @param req Request
+   * @param res Response
+   */
   async index(req: Request, res: Response){
     try{
       let list = await GameList.find();
@@ -11,36 +17,74 @@ export default {
     } catch(error){
       res.status(500).json({message: 'Ops! Something went wrong!'})
     }
-  },
+  }
 
-  async save(req: Request, res: Response){
-
+  /**
+   *  Send a game invitation
+   * @param req Request
+   * @param res Response
+   */
+   async inviteUser(req: Request, res: Response){
     try{
-      let {host_ID, game_ID} = req.body;
+      let {user_ID, game_ID} = req.body;
 
-      let gameList = new GameList({
-        host_ID, game_ID
+      const gameList = new GameList({
+        game_ID,
+        user_ID,
+        confirmed: false
       });
 
-      await gameList.save();
+      gameList.save();
 
-      res.status(200).send(gameList);
+      res.status(200).json({gameList});
     } catch(error){
       res.status(500).json({message: "Ops! Something went wrong"});
     }
+  }
 
-  },
-
-  async get(req: Request, res: Response){
+  /**
+   *  Confirma a game invitation
+   * @param req Request
+   * @param res Response
+   */
+  async confirmInvitation(req: Request, res: Response){
     try{
-      let {id} = req.params;
-      const gameList = await GameList.find({_id: id});
-      res.json(gameList)
+      let {_id, user_ID} = req.body;
+
+      const gameList = await GameList.findOne({_id, user_ID});
+
+      gameList.confirmed = true;
+
+      gameList.save();
+
+      res.status(200).json({gameList});
     } catch(error){
       res.status(500).json({message: "Ops! Something went wrong"});
     }
-  },
+  }
 
+  /**
+   *  Get all invitations of the user
+   * @param req Request
+   * @param res Response
+   */
+  async getInvitations(req: Request, res: Response){
+    try{
+      let {userId} = req.params;
+
+      const gameLists = await GameList.find({user_ID: userId});
+
+      res.status(200).json(gameLists);
+    } catch(error){
+      res.status(500).json({message: "Ops! Something went wrong"});
+    }
+  }
+
+  /**
+   *  Delete game list
+   * @param req Request
+   * @param res Response
+   */
   async destroy(req: Request, res: Response){
     try{
       let {_id} = req.params;
@@ -54,12 +98,6 @@ export default {
       return res.status(200).json({"message":"GameList deleted successfully"});
     } catch (error) {
       return res.status(500).json({"message":"Ops! Something went wrong"});
-    }
-  },
-
-  async destroyGameListArray(gameLists: Array<any>) {
-    for(const gameList of gameLists) {
-      await gameList.delete();
     }
   }
 }
