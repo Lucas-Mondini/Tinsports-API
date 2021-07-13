@@ -53,8 +53,9 @@ export default class GameListController extends DefaultController{
 
       const gameList = await GameList.findOne({_id, user_ID});
 
-      gameList.confirmed = true;
+      if (!gameList) return res.status(404).json({message: "Game List Not Found"});
 
+      gameList.confirmed = true;
       gameList.save();
 
       res.status(200).json({gameList});
@@ -74,7 +75,11 @@ export default class GameListController extends DefaultController{
 
       const gameLists = await GameList.find({user_ID: userId});
 
-      res.status(200).json(gameLists);
+      if (gameLists.length > 0) {
+        return res.status(200).json(gameLists);
+      }
+
+      res.status(404).json({message: "Game list doesn't exist"});
     } catch(error){
       res.status(500).json({message: "Ops! Something went wrong"});
     }
@@ -91,13 +96,13 @@ export default class GameListController extends DefaultController{
 
       const gameList = await GameList.findOne({_id});
 
-      if(!gameList) return res.status(404).json({"error" : "GameList doesn't exist"});
+      if(!gameList) return res.status(404).json({message: "Game doesn't exist"});
 
       await gameList.delete();
 
-      return res.status(200).json({"message":"GameList deleted successfully"});
+      return res.status(200).json({message: "GameList deleted successfully"});
     } catch (error) {
-      return res.status(500).json({"message":"Ops! Something went wrong"});
+      return res.status(500).json({message: "Ops! Something went wrong"});
     }
   }
 }

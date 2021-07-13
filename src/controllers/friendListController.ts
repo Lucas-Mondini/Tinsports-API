@@ -59,14 +59,45 @@ export default class FriendListController {
 
       if (friends.length > 0) {
         for (let friend of friends) {
-          const user = await User.findOne({_id: friend.friend_ID});
-          userInfoList.push(user);
+          if (!friend.confirmed) break;
+
+          let user;
+
+          if (friend.user_ID === id) {
+            user = await User.findOne({_id: friend.friend_ID});
+          } else {
+            user = await User.findOne({_id: friend.user_ID});
+          }
+
+          if (user) userInfoList.push(user);
         }
       }
 
       res.status(200).json({friends: userInfoList});
     } catch(error){
-      res.status(500).json({message: error.message});
+      res.status(500).json({message: "Ops! Something went wrong"});
+    }
+  }
+
+  /**
+   *  Confirm friend invitation
+   * @param req Request
+   * @param res Response
+   */
+   async confirm(req: Request, res: Response){
+    try{
+      const {_id} = req.params;
+
+      const friendInvitation = await Friends.findOne({_id});
+
+      if (!friendInvitation) return res.status(404).json({message: "Friend request doesn't exist"});
+
+      friendInvitation.confirmed = true;
+      friendInvitation.save();
+
+      res.status(200).json(friendInvitation);
+    } catch(error){
+      res.status(500).json({message: "Ops! Something went wrong"});
     }
   }
 
@@ -82,7 +113,7 @@ export default class FriendListController {
         const friend = await Friends.findOne({_id});
 
         if(!friend)
-            return res.status(404).json({message : "Friends doesn't exist"});
+            return res.status(404).json({message : "Friend doesn't exist"});
 
         await friend.delete();
         return res.status(200).json({message:"Friends deleted successfully"});

@@ -12,13 +12,13 @@ gameListRoutes.get('/game-list',                  tokenValidation, (req, res) =>
 gameListRoutes.delete('/game-list/:_id/delete',   tokenValidation, (req, res) => gameListController.destroy(req, res));
 
 // Get user invitations
-gameListRoutes.get('/games/invite/:userId',       tokenValidation, (req, res) => gameListController.getInvitations(req, res));
+gameListRoutes.get('/game-list/invite/:userId',       tokenValidation, (req, res) => gameListController.getInvitations(req, res));
 
 // Invite user to game
-gameListRoutes.post('/games/invite',              tokenValidation, (req, res) => gameListController.inviteUser(req, res));
+gameListRoutes.post('/game-list/invite',              tokenValidation, (req, res) => gameListController.inviteUser(req, res));
 
 // Confirm invitation
-gameListRoutes.post('/games/invite-confirmation', tokenValidation, (req, res) => gameListController.confirmInvitation(req, res));
+gameListRoutes.post('/game-list/invite-confirmation', tokenValidation, (req, res) => gameListController.confirmInvitation(req, res));
 
 export {
   gameListRoutes
