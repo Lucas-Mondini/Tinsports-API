@@ -32,7 +32,7 @@ describe("Test all user routes", () => {
     expect(response.body.confirmed).toBe(true);
   });
 
-  test('Should be able to find user invitations', async () => {
+  test('Should be able to find friends', async () => {
     const response = await friend.get('/friend/'+friendMock.user_ID)
       .set('auth_token', tokenAuth);
 

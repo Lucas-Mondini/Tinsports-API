@@ -12,18 +12,6 @@ const gameMock = {
   hour: "18:00"
 }
 
-const gameMock2 = {
-  _id: "60edec4383ca092bfc142a71",
-  name: "Test game 2",
-  type: "Football",
-  location: "Condo park",
-  description: "Enjoy a little game with some friends",
-  value: "15,50",
-  host_ID: "60ecc1bb78768812c80a8f53",
-  date: "20/10/2021",
-  hour: "18:00"
-}
-
 const auth_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGVjYzFiYjc4NzY4ODEyYzgwYThmNTMiLCJpYXQiOjE2MjYyMDQ4Nzl9.TdU4n68CAw-S2Hdm1qRGkpp-Q8NvLLgqnAm8Q1z1FA0";
 
 describe("Test all user routes", () => {

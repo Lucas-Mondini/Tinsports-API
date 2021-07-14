@@ -9,12 +9,23 @@ import DefaultController from "./DefaultController";
 
 export default class GameController extends DefaultController {
 
+  /**
+   * Debug - Get all users
+   * @param req
+   * @param res
+   */
+  async index(req: Request, res: Response) {
+    const games = await Game.find();
+
+    res.status(200).json(games);
+  }
+
    /**
-   *  Get all games
+   *  Get all games involving the user
    * @param req Request
    * @param res Response
    */
-   async index(req: Request, res: Response){
+   async gamesOfUser(req: Request, res: Response){
      try{
       const {id} = req.params;
       const friendsGames = await this.getFriendsGames(id);
