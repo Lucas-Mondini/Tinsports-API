@@ -5,6 +5,7 @@ export type UserType = {
   email: string;
   password: string;
   last_pass: string;
+  reputation: number;
 }
 
 const User = new mongoose.Schema({
@@ -22,6 +23,10 @@ const User = new mongoose.Schema({
   },
   last_pass: {
     type: String,
+    required: false
+  },
+  reputation:{
+    type: Number,
     required: false
   }
 });

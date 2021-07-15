@@ -2,8 +2,8 @@ const requestGameList = require("supertest");
 
 const gameListMock = {
   _id: "",
-  user_ID: "60ecc1bb78768812c80a8f53",
-  game_ID: "60edec4383ca092bfc142a71",
+  user_ID: "60f0983c4702182a5ca92c30",
+  game_ID: "60f098b74702182a5ca92c32",
   confirmed: null
 }
 

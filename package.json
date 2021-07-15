@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev src/app.ts",
     "build": "tsc",
-    "start": "node ./dist/server.js",
+    "start": "node ./dist/app.js",
     "gen-doc": "node ./swagger.js",
     "format-docs": "node ./swaggerFormatter.js",
     "test": "jest -i"

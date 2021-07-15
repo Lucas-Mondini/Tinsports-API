@@ -11,11 +11,11 @@ const userMock = {
 
 const userMock2 = {
   name: "Marcelão",
-  _id: "60ecc1bb78768812c80a8f53",
+  _id: "60f0983c4702182a5ca92c30",
   email: "marcelao123@gmail.com",
   pass: "123456",
   confPass: "123456",
-  auth_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGVjYzFiYjc4NzY4ODEyYzgwYThmNTMiLCJpYXQiOjE2MjYxMjkyODJ9.PK8LaArJP69TN3sOaSOITKMEBnIK7LEbMzAlZ8n3Zqo"
+  auth_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGVjYzFiYjc4NzY4ODEyYzgwYThmNTMiLCJpYXQiOjE2MjYyMDQ4Nzl9.TdU4n68CAw-S2Hdm1qRGkpp-Q8NvLLgqnAm8Q1z1FA0"
 }
 
 describe("Test all user routes", () => {

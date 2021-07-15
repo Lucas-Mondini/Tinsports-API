@@ -110,7 +110,7 @@ describe("Test all user routes", () => {
   test('Should create a new game list', async () => {
     let response = await crud.post('/game-list/invite').send({
       user_ID: newUserMock._id,
-      game_ID: "60ef4afbea961a2d0c16f4b0"
+      game_ID: "60f098b74702182a5ca92c32"
     })
       .set('auth_token', newUserMock.auth_token);
 

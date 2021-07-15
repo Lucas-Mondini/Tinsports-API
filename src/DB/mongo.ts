@@ -1,11 +1,11 @@
 import mongo from "mongoose"
 
-export default { 
+export default {
 	async connect() {
-		const url = process.env.MONGO_URL;
+		const url = Boolean(process.env.TEST) ? process.env.TEST_MONGO_URL : process.env.MONGO_URL;
 		if (url)
 		try{
-			await mongo.connect(url, 
+			await mongo.connect(url,
 				{
 					useNewUrlParser: true,
 					useFindAndModify: true,

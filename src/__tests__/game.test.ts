@@ -7,12 +7,12 @@ const gameMock = {
   location: "Condo park",
   description: "Enjoy a little game with some friends",
   value: "15,50",
-  host_ID: "60ecc1bb78768812c80a8f53",
+  host_ID: "60f0984a4702182a5ca92c31",
   date: "20/10/2021",
   hour: "18:00"
 }
 
-const auth_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGVjYzFiYjc4NzY4ODEyYzgwYThmNTMiLCJpYXQiOjE2MjYyMDQ4Nzl9.TdU4n68CAw-S2Hdm1qRGkpp-Q8NvLLgqnAm8Q1z1FA0";
+const auth_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGYwOTg0YTQ3MDIxODJhNWNhOTJjMzEiLCJpYXQiOjE2MjYzODA0MjN9.paaXviCbw9TP5krJO3Pn4409X6MImH_-DbvUh2FuhpI";
 
 describe("Test all user routes", () => {
   const game = requestGame.agent('http://localhost:3000');

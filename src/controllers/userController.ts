@@ -30,7 +30,6 @@ export default class UserController extends DefaultController {
             const user = await User.find({name: {$regex: '.*' + name + '.*'}});
             res.json(user);
         } catch (e) {
-            console.log(e);
             res.status(500).json({message: "Ops! Something went wrong"});
         }
     }
@@ -46,7 +45,6 @@ export default class UserController extends DefaultController {
             const user = await User.findOne({_id: id});
             res.json(user);
         } catch (e) {
-            console.log(e);
             res.status(500).json({message: "Ops! Something went wrong"});
         }
     }
@@ -69,7 +67,7 @@ export default class UserController extends DefaultController {
                 hash = await bcrypt.hash(pass, 10);
             }
             if(hash){
-                const user = new User({name, email, pass: hash});
+                const user = new User({name, email, pass: hash, reputation: null});
 
                 let tokenSecret = String(process.env.TOKEN_SECRET);
 
@@ -80,7 +78,7 @@ export default class UserController extends DefaultController {
                 await user.save();
 
                 return res.status(200).json({
-                    name: user.name, _id: user._id, email: user.email, auth_token: token,
+                    name: user.name, _id: user._id, email: user.email, auth_token: token, reputation: user.reputation
                 });
             }
         } catch (e) {
@@ -121,8 +119,21 @@ export default class UserController extends DefaultController {
             await user.delete();
             return res.status(200).json({message: "User deleted successfully"});
         } catch (e) {
-            console.log(e);
             return res.status(500).json({message: "Ops! Something went wrong"});
+        }
+    }
+
+    async updateReputation(req: Request, res: Response) {
+        try {
+            const {paid, participated, user_ID} = req.body;
+
+            const user = await this.updateReputationMethod(Boolean(paid), Boolean(participated), user_ID);
+
+            if (!user) return res.status(404).json({message: "User not found"});
+
+            res.status(200).json(user);
+        } catch(error){
+            return res.status(500).json({message : "Ops! Something went wrong"});
         }
     }
 
@@ -158,7 +169,6 @@ export default class UserController extends DefaultController {
             return res.status(200).json({message : "User update successfully"});
 
         } catch (e) {
-            console.log(e);
             return res.status(500).json({message : "Ops! Something went wrong"});
         }
 
@@ -192,5 +202,23 @@ export default class UserController extends DefaultController {
         } catch (e) {
             return res.status(401).json({message : "Email or password is incorrect"});
         }
+    }
+
+    async updateReputationMethod(paid: boolean, participated: boolean, user_ID: string) {
+        const user = await User.findOne({_id: user_ID});
+
+        if (!user) return null;
+
+        let reputation = user.reputation || 50;
+
+        (participated && !paid) ? reputation -= 5 : !participated ? reputation -= 3 : reputation += 5;
+
+        if (reputation > 50) reputation = 50;
+        if (reputation <= 0) reputation = 0;
+
+        user.reputation = reputation;
+        user.save();
+
+        return user;
     }
 }
