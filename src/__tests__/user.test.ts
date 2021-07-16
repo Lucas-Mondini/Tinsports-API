@@ -10,9 +10,9 @@ const userMock = {
 }
 
 const userMock2 = {
-  name: "Marcelão",
+  name: "Marcelo",
   _id: "60f0983c4702182a5ca92c30",
-  email: "marcelao123@gmail.com",
+  email: "marcelao13@gmail.com",
   pass: "123456",
   confPass: "123456",
   auth_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGVjYzFiYjc4NzY4ODEyYzgwYThmNTMiLCJpYXQiOjE2MjYyMDQ4Nzl9.TdU4n68CAw-S2Hdm1qRGkpp-Q8NvLLgqnAm8Q1z1FA0"
@@ -50,14 +50,14 @@ describe("Test all user routes", () => {
     const response = await user.get('/register/user/Marc').set('auth_token', userMock.auth_token);
 
     expect(response.status).toBe(200);
-    expect(response.body.length > 0);
+    expect(response.body).toHaveLength(2);
   });
 
   test('Should be able to get all users', async () => {
     const response = await user.get('/register/user').set('auth_token', userMock.auth_token);
 
     expect(response.status).toBe(200);
-    expect(response.body.length > 0);
+    expect(response.body).toHaveLength(3);
   });
 
   test('Should be able to get user by name', async () => {
@@ -80,6 +80,19 @@ describe("Test all user routes", () => {
     expect(response.body).toHaveProperty('message');
   });
 
+  test('Should be able to update user reputation', async () => {
+    const response = await user.post('/register/user/update-reputation')
+      .set('auth_token', userMock.auth_token)
+      .send({
+        paid: false,
+        participated: false,
+        user_ID: userMock._id
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.reputation).toBe(47);
+  });
+
   test('Should delete user', async () => {
     let response = await user.delete('/register/user/'+userMock._id).set('auth_token', userMock.auth_token);
 
@@ -89,7 +102,7 @@ describe("Test all user routes", () => {
     response = await user.get('/register/user').set('auth_token', userMock.auth_token);
 
     expect(response.status).toBe(200);
-    expect(response.body.length > 0);
+    expect(response.body).toHaveLength(2);
   });
 
 });

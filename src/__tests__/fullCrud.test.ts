@@ -151,6 +151,19 @@ describe("Test all user routes", () => {
     expect(response.body.length).toBe(3);
   });
 
+  test('Should be able to update user reputation', async () => {
+    const response = await crud.post('/register/user/update-reputation')
+      .set('auth_token', newUserMock.auth_token)
+      .send({
+        paid: false,
+        participated: false,
+        user_ID: newUserMock._id
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.reputation).toBe(47);
+  });
+
   test('Should delete user', async () => {
     let response = await crud.delete('/register/user/'+newUserMock._id).set('auth_token', newUserMock.auth_token);
 

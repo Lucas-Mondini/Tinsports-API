@@ -174,14 +174,21 @@ export default class GameController extends DefaultController {
 
       for (const gameList of gameLists) {
         const user = await User.findOne({_id: gameList.user_ID});
-        users.push({_id: gameList._id, user_ID: user._id, name: user.name, email: user.email, confirmed: gameList.confirmed});
+        users.push({
+          _id: gameList._id,
+          user_ID: user._id,
+          name: user.name,
+          email: user.email,
+          confirmed: gameList.confirmed,
+          reputation: user.reputation
+        });
       }
 
       const {_id, name, type, location, description, value, host_ID, date} = game;
 
       const gameInfo = {
         _id,
-        name, type, location, description, value, host_ID,
+        name, type, location, description, value: `R$ ${ FormatStrings.formatMoneyToUser(value) }`, host_ID,
         date: FormatDate.toDateString(date), hour: FormatDate.hourToString(date),
         gameList: users
       }
@@ -214,7 +221,6 @@ export default class GameController extends DefaultController {
 
       res.status(200).json({message: "Game deleted successfully"});
     } catch(error) {
-      console.log(error)
       res.status(500).json({message: "Ops! Something went wrong"});
     }
   }

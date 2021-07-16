@@ -28,6 +28,10 @@ export default class GameListController extends DefaultController{
     try{
       let {user_ID, game_ID} = req.body;
 
+      const checkInvite = await GameList.find({game_ID, user_ID});
+
+      if (checkInvite.length > 0) return res.status(200).json({message: "User already invited"});
+
       const gameList = new GameList({
         game_ID,
         user_ID,

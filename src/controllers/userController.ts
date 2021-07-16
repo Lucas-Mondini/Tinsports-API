@@ -196,7 +196,7 @@ export default class UserController extends DefaultController {
                 }, tokenSecret);
 
                 return res.status(200).json({
-                    name: user.name, _id: user._id, email: user.email, auth_token: token,
+                    name: user.name, _id: user._id, email: user.email, auth_token: token, reputation: user.reputation
                 });
             }
         } catch (e) {
