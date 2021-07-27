@@ -21,7 +21,7 @@ export default class FormatStrings {
         break;
     }
 
-    return money;
+    return `R$ ${money}`;
   }
 
   static formatMoneyToDatabase(value: string) {

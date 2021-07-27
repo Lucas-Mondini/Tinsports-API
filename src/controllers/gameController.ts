@@ -43,23 +43,29 @@ export default class GameController extends DefaultController {
    * @param req Request
    * @param res Response
    */
-  private async formatGames(games: Array<any>){
+  private async formatGames(games: Array<any>, userGame: boolean = false){
     const gamesInfo = [];
 
     for (let game of games) {
-      const {_id, name, location, host_ID, date} = game;
+      const {_id, name, location, host_ID, date, finished} = game;
 
       const fiveDays = 5 * 24 * 60 * 60 * 1000;
       let now = Number(Date.now());
-      let gameDate = Number(new Date(date)) + fiveDays;
+      let gameDate = Number(new Date(date));
 
       if (gameDate < now) {
-        game.delete();
-        continue;
+        game.finished = true;
+        await game.save();
+
+        if (gameDate + fiveDays < now) {
+          await game.delete();
+        }
+
+        if (!userGame) return false;
       }
 
       gamesInfo.push({
-        _id, name, location, host_ID, hour: FormatDate.hourToString(date)
+        _id, name, location, host_ID, hour: FormatDate.hourToString(date), finished: game.finished
       });
     }
 
@@ -102,7 +108,7 @@ export default class GameController extends DefaultController {
   async getUserGames(id: string) {
     const userGames = await Game.find({host_ID: id});
 
-    return this.formatGames(userGames);
+    return this.formatGames(userGames, true);
   }
 
   /**
@@ -132,10 +138,12 @@ export default class GameController extends DefaultController {
 
     try{
       let {name, type, location, description, value, host_ID, date, hour} = req.body;
-      let formatDate = FormatDate.dateToDatabase(date, hour);
 
       let game = new Game({
-        name, type, location, description, value: FormatStrings.formatMoneyToDatabase(value), date: formatDate, host_ID, hour
+        name, type, location, description,
+        value: FormatStrings.formatMoneyToDatabase(value),
+        date: FormatDate.dateToDatabase(date, hour),
+        host_ID, hour, finished: false
       });
 
       let now = Number(Date.now());
@@ -184,12 +192,14 @@ export default class GameController extends DefaultController {
         });
       }
 
-      const {_id, name, type, location, description, value, host_ID, date} = game;
+      const {_id, name, type, location, description, value, host_ID, date, finished} = game;
 
       const gameInfo = {
-        _id,
-        name, type, location, description, value: `R$ ${ FormatStrings.formatMoneyToUser(value) }`, host_ID,
-        date: FormatDate.toDateString(date), hour: FormatDate.hourToString(date),
+        _id, host_ID, finished,
+        name, type, location, description,
+        value: FormatStrings.formatMoneyToUser(value),
+        date: FormatDate.toDateString(date),
+        hour: FormatDate.hourToString(date),
         gameList: users
       }
 

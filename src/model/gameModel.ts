@@ -47,6 +47,10 @@ const Game = new mongoose.Schema({
     required: true,
     max: 24,
     min: 24
+  },
+  finished: {
+    type: Boolean,
+    required: true
   }
 });
 
