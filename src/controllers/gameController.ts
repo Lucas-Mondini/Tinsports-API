@@ -178,6 +178,7 @@ export default class GameController extends DefaultController {
       }
 
       const gameLists = await GameList.find({game_ID: game._id});
+      const host = await User.findOne({_id: game.host_ID});
       const users = new Array();
 
       for (const gameList of gameLists) {
@@ -195,12 +196,14 @@ export default class GameController extends DefaultController {
       const {_id, name, type, location, description, value, host_ID, date, finished} = game;
 
       const gameInfo = {
+        hostName: host.name,
+        hostEmail: host.email,
         _id, host_ID, finished,
         name, type, location, description,
         value: FormatStrings.formatMoneyToUser(value),
         date: FormatDate.toDateString(date),
         hour: FormatDate.hourToString(date),
-        gameList: users
+        gameList: users,
       }
 
       res.status(200).json(gameInfo);

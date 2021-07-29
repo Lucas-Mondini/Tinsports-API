@@ -69,7 +69,15 @@ export default class FriendListController {
             user = await User.findOne({_id: friend.user_ID});
           }
 
-          if (user) userInfoList.push(user);
+          const responseUser  = {
+            _id: friend._id,
+            user_ID: user._id,
+            name: user.name,
+            email: user.email,
+            reputation: user.reputation
+          };
+
+          if (user) userInfoList.push(responseUser);
         }
       }
 
