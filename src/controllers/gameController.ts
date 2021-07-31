@@ -28,11 +28,18 @@ export default class GameController extends DefaultController {
    async gamesOfUser(req: Request, res: Response){
      try{
       const {id} = req.params;
-      const friendsGames = await this.getFriendsGames(id);
-      const invitedGames = await this.getInvitedGames(id);
-      const userGames    = await this.getUserGames(id);
+      const {friendGames} = req.query;
+      let friendsGames, invitedGames, userGames;
 
-      res.status(200).json({invitedGames, friendsGames, userGames});
+      if (!friendGames) {
+        friendsGames   = await this.getFriendsGames(id);
+        invitedGames   = await this.getInvitedGames(id);
+        userGames      = await this.getUserGames(id);
+      } else {userGames = await this.getUserGames(id, false)};
+
+      const response = !friendGames ? {invitedGames, friendsGames, userGames} : {userGames};
+
+      res.status(200).json(response);
     } catch(error){
       res.status(500).json({message: error.message});
     }
@@ -47,7 +54,7 @@ export default class GameController extends DefaultController {
     const gamesInfo = [];
 
     for (let game of games) {
-      const {_id, name, location, host_ID, date, finished} = game;
+      const {_id, name, location, host_ID, date} = game;
 
       const fiveDays = 5 * 24 * 60 * 60 * 1000;
       let now = Number(Date.now());
@@ -61,7 +68,7 @@ export default class GameController extends DefaultController {
           await game.delete();
         }
 
-        if (!userGame) return false;
+        if (!userGame && game.finished) break;
       }
 
       gamesInfo.push({
@@ -84,6 +91,8 @@ export default class GameController extends DefaultController {
 
     if (friends.length > 0) {
       for (const friend of friends) {
+        if (!friend.confirmed) break;
+
         const games = await Game.find({host_ID: friend.friend_ID});
 
         friendsGames.push(...games);
@@ -92,6 +101,8 @@ export default class GameController extends DefaultController {
 
     if (friends2.length > 0) {
       for (const friend2 of friends2) {
+        if (!friend2.confirmed) break;
+
         const games2 = await Game.find({host_ID: friend2.user_ID});
         friendsGames.push(...games2);
       }
@@ -105,10 +116,10 @@ export default class GameController extends DefaultController {
    * @param req Request
    * @param res Response
    */
-  async getUserGames(id: string) {
+  async getUserGames(id: string, showFinished: boolean = true) {
     const userGames = await Game.find({host_ID: id});
 
-    return this.formatGames(userGames, true);
+    return this.formatGames(userGames, showFinished);
   }
 
   /**

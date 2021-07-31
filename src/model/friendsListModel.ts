@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 export type FriendsType = {
+  _id: string;
   user_ID: string;
   friend_ID: string;
   confirmed: boolean;

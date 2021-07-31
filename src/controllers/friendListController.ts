@@ -29,6 +29,13 @@ export default class FriendListController {
     try{
       let {user_ID, friend_ID} = req.body;
 
+      const hasFriendRelation = await Friends.find().or([
+        {user_ID, friend_ID},
+        {friend_ID: user_ID, user_ID: friend_ID}
+      ]);
+
+      if (hasFriendRelation.length > 0) return res.status(401).json({message: "Already friends"});
+
       let friends = new Friends({
         user_ID, friend_ID, confirmed: false
       });
@@ -42,6 +49,43 @@ export default class FriendListController {
 
   }
 
+  async friendListFormat(id: string, invitation: boolean = false) {
+    const friends = !invitation ? await Friends.find().or([
+      {user_ID: id},
+      {friend_ID: id}
+    ]) : await Friends.find({friend_ID: id});
+
+    const userInfoList = new Array();
+
+    if (friends.length > 0) {
+      for (let friend of friends) {
+        if (!invitation && !friend.confirmed) break;
+        if (invitation && friend.confirmed) break;
+
+        let user;
+
+        if (friend.user_ID === id) {
+          user = await User.findOne({_id: friend.friend_ID});
+        } else {
+          user = await User.findOne({_id: friend.user_ID});
+        }
+
+        const responseUser  = {
+          _id: friend._id,
+          user_ID: user._id,
+          name: user.name,
+          email: user.email,
+          reputation: user.reputation,
+          confirmed: friend.confirmed
+        };
+
+        if (user) userInfoList.push(responseUser);
+      }
+    }
+
+    return userInfoList;
+  }
+
   /**
    *  Get friend relation by id
    * @param req Request
@@ -50,38 +94,16 @@ export default class FriendListController {
   async get(req: Request, res: Response){
     try{
       const {id} = req.params;
-      const userInfoList = new Array();
+      const {friendFriends} = req.query;
 
-      const friends = await Friends.find().or([
-        {user_ID: id},
-        {friend_ID: id}
-      ]);
+      let friendInvites, friends;
 
-      if (friends.length > 0) {
-        for (let friend of friends) {
-          if (!friend.confirmed) break;
+      if (!friendFriends) {
+        friends = await this.friendListFormat(id, false);
+        friendInvites = await this.friendListFormat(id, true);
+      } else friends = await this.friendListFormat(id, false);
 
-          let user;
-
-          if (friend.user_ID === id) {
-            user = await User.findOne({_id: friend.friend_ID});
-          } else {
-            user = await User.findOne({_id: friend.user_ID});
-          }
-
-          const responseUser  = {
-            _id: friend._id,
-            user_ID: user._id,
-            name: user.name,
-            email: user.email,
-            reputation: user.reputation
-          };
-
-          if (user) userInfoList.push(responseUser);
-        }
-      }
-
-      res.status(200).json({friends: userInfoList});
+      res.status(200).json({friends, friendInvites});
     } catch(error){
       res.status(500).json({message: "Ops! Something went wrong"});
     }

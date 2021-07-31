@@ -142,11 +142,12 @@ export default class UserController extends DefaultController {
      * @param req Request
      * @param res Response
      */
-    async update(req: Request, res: Response){
+    async update(req: Request, res: Response) {
         try{
 
             let {pass, newName, newEmail, newPass} = req.body;
             let {_id} = req.params;
+
             const user = await User.findOne({_id});
             if(!user)
                 return res.status(404).json({error : "User doesn't exist"});
@@ -179,16 +180,16 @@ export default class UserController extends DefaultController {
      * @param req Request
      * @param res Response
      */
-    async login(req : Request, res : Response){
+    async login(req : Request, res : Response) {
         try{
             let {email, pass} = req.body;
 
             const user = await User.findOne({email});
 
-            if(!user)
+            if (!user)
                 return res.status(400).json({error : "User not found"});
 
-            if(await bcrypt.compare(pass, user.pass)){
+            if (await bcrypt.compare(pass, user.pass)) {
                 let tokenSecret = String(process.env.TOKEN_SECRET);
 
                 const token = jwt.sign({
@@ -199,6 +200,8 @@ export default class UserController extends DefaultController {
                     name: user.name, _id: user._id, email: user.email, auth_token: token, reputation: user.reputation
                 });
             }
+
+            return res.status(401).json({message: "Email or password is incorrect"});
         } catch (e) {
             return res.status(401).json({message : "Email or password is incorrect"});
         }
