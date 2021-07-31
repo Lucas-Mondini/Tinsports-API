@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
 import GameList from "../model/GameListModel";
+import Game from "../model/GameModel";
+import User from "../model/UserModel";
+import FormatDate from "../utils/formatDate";
 import DefaultController from "./DefaultController";
 
 export default class GameListController extends DefaultController{
@@ -77,15 +80,31 @@ export default class GameListController extends DefaultController{
     try{
       let {userId} = req.params;
 
+      const inviteInfo = new Array();
       const gameLists = await GameList.find({user_ID: userId});
 
-      if (gameLists.length > 0) {
-        return res.status(200).json(gameLists);
+      for (const gameList of gameLists) {
+        const game = await Game.findOne({_id: gameList.game_ID});
+        const host = await User.findOne({_id: game.host_ID});
+
+        if (!gameList.confirmed && game && host) {
+          inviteInfo.push({
+            _id: gameList._id,
+            host_ID: host._id,
+            game_ID: game._id,
+            gameName: game.name,
+            location: game.location,
+            hostName: host.name,
+            date: FormatDate.toDateString(game.date),
+            hour: FormatDate.hourToString(game.date)
+          });
+        };
+
       }
 
-      res.status(404).json({message: "Game list doesn't exist"});
+      return res.status(200).json(inviteInfo);
     } catch(error){
-      res.status(500).json({message: "Ops! Something went wrong"});
+      res.status(500).json({message: error.message});
     }
   }
 
