@@ -158,7 +158,7 @@ export default class GameController extends DefaultController {
       });
 
       let now = Number(Date.now());
-      let gameDate = Number(new Date(date));
+      let gameDate = Number(new Date(FormatDate.dateToDatabase(date, hour)));
 
       if (gameDate < now) {
         res.status(200).json({error: "The event date cannot be less than the current date"});
