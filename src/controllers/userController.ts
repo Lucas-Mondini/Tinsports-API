@@ -1,7 +1,7 @@
-import User from "../model/UserModel";
-import Game from "../model/GameModel";
-import GameList from "../model/GameListModel";
-import Friends from "../model/FriendsListModel";
+import User from "../model/userModel";
+import Game from "../model/gameModel";
+import GameList from "../model/gameListModel";
+import Friends from "../model/friendsListModel";
 import {Request, Response} from 'express';
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";

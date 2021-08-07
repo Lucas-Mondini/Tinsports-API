@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import Game     from "../model/GameModel";
-import GameList from "../model/GameListModel";
-import Friends from "../model/FriendsListModel";
-import User from "../model/UserModel";
+import Game     from "../model/gameModel";
+import GameList from "../model/gameListModel";
+import Friends from "../model/friendsListModel";
+import User from "../model/userModel";
 import FormatDate from "../utils/formatDate";
 import FormatStrings from "../utils/formatStrings";
 import DefaultController from "./DefaultController";

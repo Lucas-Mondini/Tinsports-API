@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import Friends from "../model/FriendsListModel";
-import User from "../model/UserModel";
+import Friends from "../model/friendsListModel";
+import User from "../model/userModel";
 
 export default class FriendListController {
 
