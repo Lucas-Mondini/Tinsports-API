@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import GameController from '../controllers/GameController';
+import GameController from '../controllers/gameController';
 import tokenValidation from '../services/tokenValidation';
 
 const gameRoutes = Router();
