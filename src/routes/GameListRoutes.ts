@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import GameListController from "../controllers/GameListController";
+import GameListController from "../controllers/gameListController";
 import tokenValidation from '../services/tokenValidation';
 
 const gameListRoutes = Router();

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import FriendListController from "../controllers/FriendListController";
+import FriendListController from "../controllers/friendListController";
 import tokenValidation from '../services/tokenValidation';
 
 const friendRoutes = Router();
