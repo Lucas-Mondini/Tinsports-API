@@ -1,4 +1,4 @@
-import User from "../model/userModel";
+import User, { UserType } from "../model/userModel";
 import Game from "../model/gameModel";
 import GameList from "../model/gameListModel";
 import Friends from "../model/friendsListModel";
@@ -13,10 +13,10 @@ export default class UserController extends DefaultController {
      * @param req Request
      * @param res Response
      */
-    async index(req : Request, res : Response) {
+    async index() {
         const users = await User.find();
 
-        res.json(users);
+        return users;
     }
 
     /**
@@ -24,13 +24,13 @@ export default class UserController extends DefaultController {
      * @param req Request
      * @param res Response
      */
-    async getByName(req : Request, res : Response) {
+    async getByName(userName: String) {
         try{
-            let {name} = req.params;
-            const user = await User.find({name: {$regex: '.*' + name + '.*'}});
-            res.json(user);
+            let name = userName;
+            const user : UserType = await User.find({name: {$regex: '.*' + name + '.*'}});
+            return user;
         } catch (e) {
-            res.status(500).json({message: "Ops! Something went wrong"});
+            return null;
         }
     }
 
@@ -39,13 +39,13 @@ export default class UserController extends DefaultController {
      * @param req Request
      * @param res Response
      */
-    async getById(req : Request, res : Response) {
+    async getById(userId : String) {
         try{
-            let {id} = req.params;
+            const id : String = userId;
             const user = await User.findOne({_id: id});
-            res.json(user);
+            return user;
         } catch (e) {
-            res.status(500).json({message: "Ops! Something went wrong"});
+            return null;
         }
     }
 
@@ -54,20 +54,20 @@ export default class UserController extends DefaultController {
      * @param req Request
      * @param res Response
      */
-    async save(req : Request, res : Response) {
+    async save(newUser :  UserType) {
         try{
-            let {name, email, pass, confPass} = req.body;
+            let {name, email, password, confPassword} = newUser;
             let hash = null;
 
             const cmpEmail = await User.findOne({email});
             if(cmpEmail)
-                return res.status(400).json({message: "Email already in use"})
+                return {failed: false, code: 400, message: "Email already in use"};
 
-            if(pass == confPass) {
-                hash = await bcrypt.hash(pass, 10);
+            if(password == confPassword) {
+                hash = await bcrypt.hash(password, 10);
             }
             if(hash){
-                const user = new User({name, email, pass: hash, reputation: null});
+                const user = new User({name, email, password: hash, reputation: null});
 
                 let tokenSecret = String(process.env.TOKEN_SECRET);
 
@@ -77,12 +77,12 @@ export default class UserController extends DefaultController {
 
                 await user.save();
 
-                return res.status(200).json({
+                return {
                     name: user.name, _id: user._id, email: user.email, auth_token: token, reputation: user.reputation
-                });
+                };
             }
         } catch (e) {
-            res.status(500).json({message: "Ops! Something went wrong"});
+            return {failed: false, code: 500, message: "Ops! Something went wrong"};
         }
     }
 
