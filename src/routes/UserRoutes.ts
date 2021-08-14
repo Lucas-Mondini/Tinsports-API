@@ -1,33 +1,33 @@
 import { Router } from 'express';
-import UserController from '../controllers/userController';
 import tokenValidation from '../services/tokenValidation';
+import UserView from '../views/UserView';
 
 const userRoutes = Router();
-const userController = new UserController();
+const usersView = new UserView();
 
 // Get all users, for Staff only
-userRoutes.get('/register/user',                       tokenValidation, (req, res) => userController.index(req, res));
+userRoutes.get('/register/user',                    tokenValidation, usersView.index);
 
 // Find user by name
-userRoutes.get('/register/user/:name',                 tokenValidation, (req, res) => userController.getByName(req, res));
+userRoutes.get('/register/user/:name',              tokenValidation, usersView.name);
 
 // Find user by Id
-userRoutes.get('/user/:id',                            tokenValidation, (req, res) => userController.getById(req, res));
+userRoutes.get('/user/:id',                         tokenValidation, usersView.get);
 
 // Register user
-userRoutes.post('/register/user',                                       (req, res) => userController.save(req, res));
+userRoutes.post('/register/user',                                    usersView.save);
 
 // Delete user
-userRoutes.delete('/register/user/:_id',               tokenValidation, (req, res) => userController.destroy(req, res));
+userRoutes.delete('/register/user',                 tokenValidation, usersView.destroy);
 
 // Update user
-userRoutes.put('/register/user/:_id',                  tokenValidation, (req, res) => userController.update(req, res));
+userRoutes.put('/register/user',                    tokenValidation, usersView.update);
 
 // Update user
-userRoutes.post('/register/user/update-reputation',    tokenValidation, (req, res) => userController.updateReputation(req, res));
+userRoutes.post('/register/user/update-reputation', tokenValidation, usersView.reputation);
 
 // User Login
-userRoutes.post('/login',                                               (req, res) => userController.login(req, res));
+userRoutes.post('/login',                                            usersView.login);
 
 export {
   userRoutes

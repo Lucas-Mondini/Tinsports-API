@@ -15,7 +15,7 @@ const userMock2 = {
   email: "marcelao13@gmail.com",
   pass: "123456",
   confPass: "123456",
-  auth_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGVjYzFiYjc4NzY4ODEyYzgwYThmNTMiLCJpYXQiOjE2MjYyMDQ4Nzl9.TdU4n68CAw-S2Hdm1qRGkpp-Q8NvLLgqnAm8Q1z1FA0"
+  auth_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGYwOTgzYzQ3MDIxODJhNWNhOTJjMzAiLCJpYXQiOjE2Mjg5NjUxNjF9.STM3F7g0pNVcQqsL0IxOm7MD71NrFscWSdqpGGE6Zf0"
 }
 
 describe("Test all user routes", () => {
@@ -60,15 +60,8 @@ describe("Test all user routes", () => {
     expect(response.body).toHaveLength(3);
   });
 
-  test('Should be able to get user by name', async () => {
-    const response = await user.get('/register/user/Marc').set('auth_token', userMock.auth_token);
-
-    expect(response.status).toBe(200);
-    expect(response.body.length > 0);
-  });
-
   test('Should be able to update user', async () => {
-    const response = await user.put('/register/user/'+userMock2._id)
+    const response = await user.put('/register/user')
       .set('auth_token', userMock2.auth_token)
       .send({
         pass: userMock2.pass,
@@ -94,7 +87,7 @@ describe("Test all user routes", () => {
   });
 
   test('Should delete user', async () => {
-    let response = await user.delete('/register/user/'+userMock._id).set('auth_token', userMock.auth_token);
+    let response = await user.delete('/register/user').set('auth_token', userMock.auth_token);
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('message');

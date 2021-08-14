@@ -6,7 +6,8 @@ export default class GameView extends DefaultView {
 
   private gameListController: GameListController;
 
-  constructor() {
+  constructor()
+  {
     super()
     this.gameListController = new GameListController();
   }
@@ -35,7 +36,8 @@ export default class GameView extends DefaultView {
     this.treatError(res, response);
   }
 
-  confirm = async(req: Request, res: Response) =>{
+  confirm = async(req: Request, res: Response) =>
+  {
     const {_id} = req.body;
     const user_ID = req.user._id;
 

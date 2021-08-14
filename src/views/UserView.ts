@@ -1,55 +1,81 @@
 import { Request, Response } from "express";
 import UserController from "../controllers/userController";
+import DefaultView from "./DefaultView";
 
-export default class GameView {
+export default class UserView extends DefaultView {
 
-  async index(req: Request, res: Response) {
-    const users = await new UserController().index();
+  private userController = new UserController();
 
-    res.status(200).json(users);
-  }
-
-  async getByName(req: Request, res: Response) {
-    const {name} = req.params;
-    const users = await new UserController().getByName(name);
-
-    if(users) 
-      res.status(200).json(users);
-    else
-      res.status(500).json({message: "Ops! Something went wrong"});
-  }
-
-  async getById(req : Request, res : Response) { 
-    const {id} = req.params;
-    const users = await new UserController().getById(id);
-
-    if(users) 
-      res.status(200).json(users);
-    else
-      res.status(500).json({message: "Ops! Something went wrong"});
-  }
-
-  async save(req : Request, res : Response) {
-    const user = await new UserController().save(req.body);
-
-    if(user) {
-      if (!user.failed) {
-        res.status(200).json(user)
-      } 
-      else 
-        res.status(user.code).json(user.message);
-      }
-  }
-
-  async getHome(req: Request, res: Response)
+  constructor()
   {
-    const {_id} = req.user || req.query;
+    super();
+    this.userController = new UserController();
+  }
 
-    const {friendGames} = req.query;
+  index = async(req: Request, res: Response) =>
+  {
+    const response = await this.userController.getAllUsers();
 
-    //const response = await new GameController().gamesOfUser(_id, !!friendGames);
+    this.treatError(res, response);
+  }
 
-    res.status(200).json(response);
+  name = async(req: Request, res: Response) =>
+  {
+    const {name} = req.params;
+    const response = await this.userController.getUserByName(name);
+
+    this.treatError(res, response);
+  }
+
+  get = async(req: Request, res: Response) =>
+  {
+    const {id} = req.params;
+    const response = await this.userController.getUserById(id);
+
+    this.treatError(res, response);
+  }
+
+  save = async(req: Request, res: Response) =>
+  {
+    const response = await this.userController.createNewUser(req.body);
+
+    this.treatError(res, response);
+  }
+
+  reputation = async(req: Request, res: Response) =>
+  {
+    const {paid, participated, user_ID} = req.body;
+
+    const response = await this.userController.updateReputation(paid, participated, user_ID);
+
+    this.treatError(res, response);
+  }
+
+  destroy = async(req: Request, res: Response) =>
+  {
+    const {_id} = req.user;
+
+    const response = await this.userController.deleteUser(_id);
+
+    this.treatError(res, response);
+  }
+
+  update = async(req: Request, res: Response) =>
+  {
+    const {_id} = req.user;
+
+    const response = await this.userController.updateUser(req.body, _id);
+
+    this.treatError(res, response);
+  }
+
+  login = async(req: Request, res: Response) =>
+  {
+    const {email, pass} = req.body;
+
+    const response = await this.userController.login(email, pass);
+
+    this.treatError(res, response);
   }
 
 }

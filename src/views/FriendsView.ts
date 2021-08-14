@@ -13,47 +13,47 @@ export default class FriendsView extends DefaultView {
     this.friendsController = new FriendListController();
   }
 
-  index = (req: Request, res: Response) =>
+  index = async(req: Request, res: Response) =>
   {
-    const response = this.friendsController.getAllFriendsRelations();
+    const response = await this.friendsController.getAllFriendsRelations();
 
     this.treatError(res, response);
   }
 
-  get = (req: Request, res: Response) =>
+  get = async(req: Request, res: Response) =>
   {
     const {_id} = req.params || req.user;
     const {friendsFriends} = req.query;
 
-    const response = this.friendsController.getFriendById(_id, !!friendsFriends);
+    const response = await this.friendsController.getFriendById(_id, !!friendsFriends);
 
     this.treatError(res, response);
   }
 
-  save = (req: Request, res: Response) =>
+  save = async(req: Request, res: Response) =>
   {
     const {friend_ID} = req.body;
     const user_ID = req.user._id;
 
-    const response = this.friendsController.sendFriendInvitation(user_ID, friend_ID);
+    const response = await await this.friendsController.sendFriendInvitation(user_ID, friend_ID);
 
     this.treatError(res, response);
   }
 
-  confirm = (req: Request, res: Response) =>
+  confirm = async(req: Request, res: Response) =>
   {
     const {_id} = req.params
 
-    const response = this.friendsController.confirmFriendInvitation(_id);
+    const response = await this.friendsController.confirmFriendInvitation(_id);
 
     this.treatError(res, response);
   }
 
-  destroy = (req: Request, res: Response) =>
+  destroy = async(req: Request, res: Response) =>
   {
     const {_id} = req.params
 
-    const response = this.friendsController.deleteFriend(_id);
+    const response = await this.friendsController.deleteFriend(_id);
 
     this.treatError(res, response);
   }

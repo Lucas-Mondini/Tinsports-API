@@ -7,13 +7,13 @@ const gameListMock = {
   confirmed: null
 }
 
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGVjYzFiYjc4NzY4ODEyYzgwYThmNTMiLCJpYXQiOjE2MjYyMDQ4Nzl9.TdU4n68CAw-S2Hdm1qRGkpp-Q8NvLLgqnAm8Q1z1FA0";
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGYwOTgzYzQ3MDIxODJhNWNhOTJjMzAiLCJpYXQiOjE2Mjg5NjUxNjF9.STM3F7g0pNVcQqsL0IxOm7MD71NrFscWSdqpGGE6Zf0";
 
 describe("Test all user routes", () => {
   const gameList = requestGameList.agent('http://localhost:3000');
 
   test('Should create a new game list', async () => {
-    let response = await gameList.post('/game-list/invite').send(gameListMock)
+    let response = await gameList.post('/game-list').send(gameListMock)
       .set('auth_token', token);
 
     gameListMock._id = response.body.gameList._id;
@@ -37,7 +37,7 @@ describe("Test all user routes", () => {
   });
 
   test('Should be able to find user invitations', async () => {
-    const response = await gameList.get('/game-list/invite/'+gameListMock.user_ID)
+    const response = await gameList.get('/game-list/invite')
       .set('auth_token', token);
 
     expect(response.status).toBe(200);
@@ -45,16 +45,13 @@ describe("Test all user routes", () => {
   });
 
   test('Should delete game list', async () => {
-    let response = await gameList.delete('/game-list/'+gameListMock._id+'/delete')
+    let response = await gameList.delete('/game-list/'+gameListMock._id)
       .set('auth_token', token);
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('message');
 
-    response = await gameList.get('/game-list/invite/'+gameListMock.user_ID).set('auth_token', token);
-
-    expect(response.status).toBe(404);
-    expect(response.body).toHaveProperty('message');
+    response = await gameList.get('/game-list/invite').set('auth_token', token);
   });
 
 });

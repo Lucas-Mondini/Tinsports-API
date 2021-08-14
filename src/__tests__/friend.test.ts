@@ -7,7 +7,7 @@ const friendMock = {
   confirmed: null
 }
 
-const tokenAuth = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGYwOTg0YTQ3MDIxODJhNWNhOTJjMzEiLCJpYXQiOjE2MjYzODA0MjN9.paaXviCbw9TP5krJO3Pn4409X6MImH_-DbvUh2FuhpI";
+const tokenAuth = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGYwOTgzYzQ3MDIxODJhNWNhOTJjMzAiLCJpYXQiOjE2Mjg5NjUxNjF9.STM3F7g0pNVcQqsL0IxOm7MD71NrFscWSdqpGGE6Zf0";
 
 describe("Test all user routes", () => {
   const friend = friendRequest.agent('http://localhost:3000');
@@ -40,7 +40,7 @@ describe("Test all user routes", () => {
     expect(response.body.length > 0);
   });
 
-  test('Should delete game list', async () => {
+  test('Should delete friend', async () => {
     let response = await friend.delete('/friend/'+friendMock._id)
       .set('auth_token', tokenAuth);
 

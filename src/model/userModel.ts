@@ -1,12 +1,16 @@
 const mongoose = require('mongoose');
 
 export type UserType = {
+  _id: string;
   name: string;
   email: string;
-  password: string;
+  pass: string;
   last_pass: string;
   reputation: number;
-  confPassword: string;
+  confPass: string;
+  newName: string;
+  newPass: string;
+  newEmail: string;
 }
 
 const User = new mongoose.Schema({

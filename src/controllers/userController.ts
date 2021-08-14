@@ -2,7 +2,6 @@ import User, { UserType } from "../model/userModel";
 import Game from "../model/gameModel";
 import GameList from "../model/gameListModel";
 import Friends from "../model/friendsListModel";
-import {Request, Response} from 'express';
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import DefaultController from "./DefaultController";
@@ -10,10 +9,8 @@ import DefaultController from "./DefaultController";
 export default class UserController extends DefaultController {
     /**
      *  Method to get all users from database
-     * @param req Request
-     * @param res Response
      */
-    async index() {
+    async getAllUsers() {
         const users = await User.find();
 
         return users;
@@ -21,53 +18,47 @@ export default class UserController extends DefaultController {
 
     /**
      *  Get all users by name
-     * @param req Request
-     * @param res Response
      */
-    async getByName(userName: String) {
+    async getUserByName(name: String) {
         try{
-            let name = userName;
-            const user : UserType = await User.find({name: {$regex: '.*' + name + '.*'}});
+            const user = await User.find({name: {$regex: '.*' + name + '.*'}});
+
             return user;
         } catch (e) {
-            return null;
+            return {status: 500, message: "Ops! Something went wrong"};
         }
     }
 
     /**
      *  Get all users by id
-     * @param req Request
-     * @param res Response
      */
-    async getById(userId : String) {
+    async getUserById(_id: String) {
         try{
-            const id : String = userId;
-            const user = await User.findOne({_id: id});
+            const user = await User.findOne({_id});
+
             return user;
         } catch (e) {
-            return null;
+            return {status: 500, message: "Ops! Something went wrong"};
         }
     }
 
     /**
      * Save a new user
-     * @param req Request
-     * @param res Response
      */
-    async save(newUser :  UserType) {
+    async createNewUser(newUser: UserType) {
         try{
-            let {name, email, password, confPassword} = newUser;
+            let {name, email, pass, confPass} = newUser;
             let hash = null;
 
             const cmpEmail = await User.findOne({email});
             if(cmpEmail)
-                return {failed: false, code: 400, message: "Email already in use"};
+                return {status: 400, message: "Email already in use"};
 
-            if(password == confPassword) {
-                hash = await bcrypt.hash(password, 10);
+            if(pass == confPass) {
+                hash = await bcrypt.hash(pass, 10);
             }
             if(hash){
-                const user = new User({name, email, password: hash, reputation: null});
+                const user = new User({name, email, pass: hash, reputation: null});
 
                 let tokenSecret = String(process.env.TOKEN_SECRET);
 
@@ -82,19 +73,15 @@ export default class UserController extends DefaultController {
                 };
             }
         } catch (e) {
-            return {failed: false, code: 500, message: "Ops! Something went wrong"};
+            return {status: 500, message: "Ops! Something went wrong"};
         }
     }
 
     /**
      *  Delete user, his games, game lists and friends
-     * @param req Request
-     * @param res Response
      */
-    async destroy(req: Request, res: Response){
+    async deleteUser(_id: string) {
         try{
-            let {_id} = req.params;
-
             const user = await User.findOne({_id});
             const games = await Game.find({host_ID: _id});
             const invitations = await GameList.find({user_ID: _id});
@@ -105,7 +92,7 @@ export default class UserController extends DefaultController {
             const gameLists = [...invitations];
 
             if(!user)
-                return res.status(404).json({message: "User doesn't exist"});
+                return {status: 404, message: "User doesn't exist"};
 
             for (const game of games) {
                 const lists = await GameList.find({game_ID: game._id});
@@ -117,45 +104,41 @@ export default class UserController extends DefaultController {
             await this.destroyObjectArray(friends);
 
             await user.delete();
-            return res.status(200).json({message: "User deleted successfully"});
+            return {message: "User deleted successfully"};
         } catch (e) {
-            return res.status(500).json({message: "Ops! Something went wrong"});
+            return {status: 500, message: "Ops! Something went wrong"};
         }
     }
 
-    async updateReputation(req: Request, res: Response) {
+    async updateReputation(paid: boolean, participated: boolean, user_ID: string) {
         try {
-            const {paid, participated, user_ID} = req.body;
+            const user = await this.updateReputationMethod(paid, participated, user_ID);
 
-            const user = await this.updateReputationMethod(Boolean(paid), Boolean(participated), user_ID);
+            if (!user) return {status: 404, message: "User not found"};
 
-            if (!user) return res.status(404).json({message: "User not found"});
-
-            res.status(200).json(user);
+            return user;
         } catch(error){
-            return res.status(500).json({message : "Ops! Something went wrong"});
+            return {status: 500, message: "Ops! Something went wrong"};
         }
     }
 
     /**
      *  Update user info
-     * @param req Request
-     * @param res Response
      */
-    async update(req: Request, res: Response) {
+    async updateUser(userInfo: UserType, userId: string) {
         try{
 
-            let {pass, newName, newEmail, newPass} = req.body;
-            let {_id} = req.params;
+            let {pass, newName, newEmail, newPass} = userInfo;
 
-            const user = await User.findOne({_id});
+            const user = await User.findOne({_id: userId});
+
             if(!user)
-                return res.status(404).json({error : "User doesn't exist"});
+                return {status: 404, error : "User doesn't exist"};
 
             let r = await bcrypt.compare(pass, user.pass);
 
             if(!r)
-                return res.status(401).json({error : "Email or password is incorrect"});
+                return {status: 401, error : "Email or password is incorrect"};
 
             let userUpdate = {
                 name      : (newName)  ? newName : user.name,
@@ -167,27 +150,23 @@ export default class UserController extends DefaultController {
             await user.updateOne(userUpdate);
             await user.save();
 
-            return res.status(200).json({message : "User update successfully"});
+            return {message : "User update successfully"};
 
         } catch (e) {
-            return res.status(500).json({message : "Ops! Something went wrong"});
+            return {status: 500, message: "Ops! Something went wrong"};
         }
 
     }
 
     /**
      * Method that makes the login
-     * @param req Request
-     * @param res Response
      */
-    async login(req : Request, res : Response) {
+    async login(email: string, pass: string) {
         try{
-            let {email, pass} = req.body;
-
             const user = await User.findOne({email});
 
             if (!user)
-                return res.status(400).json({error : "User not found"});
+                return {status: 404, error : "User not found"};
 
             if (await bcrypt.compare(pass, user.pass)) {
                 let tokenSecret = String(process.env.TOKEN_SECRET);
@@ -196,21 +175,25 @@ export default class UserController extends DefaultController {
                     _id: user._id
                 }, tokenSecret);
 
-                return res.status(200).json({
-                    name: user.name, _id: user._id, email: user.email, auth_token: token, reputation: user.reputation
-                });
+                return {
+                    _id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    auth_token: token,
+                    reputation: user.reputation
+                };
             }
 
-            return res.status(401).json({message: "Email or password is incorrect"});
+            return {status: 401, message: "Email or password is incorrect"};
         } catch (e) {
-            return res.status(401).json({message : "Email or password is incorrect"});
+            return {status: 500, message: "Ops! Something went wrong"};
         }
     }
 
     async updateReputationMethod(paid: boolean, participated: boolean, user_ID: string) {
         const user = await User.findOne({_id: user_ID});
 
-        if (!user) return null;
+        if (!user) return {status: 404, message: "User doesn't exist'"};
 
         let reputation = user.reputation || 50;
 

@@ -101,14 +101,14 @@ describe("Test all user routes", () => {
     let response = await crud.post('/games').send(newUserGameMock)
       .set('auth_token', newUserMock.auth_token);
 
-      newUserGameMock._id = response.body._id;
+      newUserGameMock._id = response.body.game._id;
 
     expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('_id');
+    expect(response.body.game).toHaveProperty('_id');
   });
 
   test('Should create a new game list', async () => {
-    let response = await crud.post('/game-list/invite').send({
+    let response = await crud.post('/game-list').send({
       user_ID: newUserMock._id,
       game_ID: "60f098b74702182a5ca92c32"
     })
@@ -137,7 +137,7 @@ describe("Test all user routes", () => {
   });
 
   test('Should be able to find user invitations', async () => {
-    const response = await crud.get('/game-list/invite/'+gameListMock2.user_ID)
+    const response = await crud.get('/game-list/invite')
       .set('auth_token', newUserMock.auth_token);
 
     expect(response.status).toBe(200);
@@ -165,7 +165,7 @@ describe("Test all user routes", () => {
   });
 
   test('Should delete user', async () => {
-    let response = await crud.delete('/register/user/'+newUserMock._id).set('auth_token', newUserMock.auth_token);
+    let response = await crud.delete('/register/user').set('auth_token', newUserMock.auth_token);
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('message');
