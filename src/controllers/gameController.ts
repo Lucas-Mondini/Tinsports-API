@@ -1,5 +1,4 @@
-import { Request, Response } from "express";
-import Game, { GameType, GameType }     from "../model/gameModel";
+import Game, { GameType }     from "../model/gameModel";
 import GameList from "../model/gameListModel";
 import Friends from "../model/friendsListModel";
 import User from "../model/userModel";
@@ -12,7 +11,7 @@ export default class GameController extends DefaultController {
   /**
    * Debug - Get all users
    */
-  async index() {
+  async getAllGames() {
     const games = await Game.find();
 
     return games;
@@ -21,7 +20,7 @@ export default class GameController extends DefaultController {
    /**
    *  Get all games involving the user
    */
-   async gamesOfUser(id: string, friendGames: boolean) {
+   async getAllGamesOfUser(id: string, friendGames: boolean) {
      try{
       let friendsGames, invitedGames, userGames;
 
@@ -37,23 +36,21 @@ export default class GameController extends DefaultController {
 
       return response;
     } catch(error) {
-      return {message: error.message};
+      return {code: 500, message: error.message};
     }
   }
 
   /**
    *  Format games
-   * @param req Request
-   * @param res Response
    */
-  private async formatGames(games: Array<any>, userGame: boolean = false){
+  private async formatGames(games: Array<GameType>, userGame: boolean = false) {
     const gamesInfo = [];
 
     for (let game of games) {
       const {_id, name, location, host_ID, date} = game;
 
       const fiveDays = 5 * 24 * 60 * 60 * 1000;
-      let now = Number(Date.now());
+      let now = Number(Date.now()) - (Number(process.env.SERVER_TIME) || 0);
       let gameDate = Number(new Date(date));
 
       if (gameDate < now) {
@@ -77,8 +74,6 @@ export default class GameController extends DefaultController {
 
   /**
    *  Get friends games
-   * @param req Request
-   * @param res Response
    */
   async getFriendsGames(id: string) {
     const friends = await Friends.find({user_ID: id});
@@ -109,8 +104,6 @@ export default class GameController extends DefaultController {
 
   /**
    * Get user games
-   * @param req Request
-   * @param res Response
    */
   async getUserGames(id: string, showFinished: boolean = true) {
     const userGames = await Game.find({host_ID: id});
@@ -120,8 +113,6 @@ export default class GameController extends DefaultController {
 
   /**
    * Get invited Games
-   * @param req Request
-   * @param res Response
    */
   async getInvitedGames(id: string) {
     const gameLists = await GameList.find({user_ID: id});
@@ -138,49 +129,44 @@ export default class GameController extends DefaultController {
 
   /**
    * Save new game
-   * @param req Request
-   * @param res Response
    */
-  async save(gameInfo: GameType){
+  async insertNewGame(gameInfo: GameType) {
 
-    try{
+    try {
       let {name, type, location, description, value, host_ID, date, hour} = gameInfo;
 
       let game = new Game({
         name, type, location, description,
-        value: FormatStrings.formatMoneyToDatabase(value),
+        value: FormatStrings.formatMoneyToDatabase(String(value)),
         date: FormatDate.dateToDatabase(date, hour),
         host_ID, hour, finished: false
       });
 
-      let now = Number(Date.now());
+      let now = Number(Date.now()) - (Number(process.env.SERVER_TIME) || 0);
       let gameDate = Number(new Date(FormatDate.dateToDatabase(date, hour)));
 
       if (gameDate < now) {
-        return {error: "The event date cannot be less than the current date"};
+        return {code: 401, error: "The event date cannot be less than the current date"};
       }
 
       await game.save();
 
       return {game};
-    } catch(error){
-      return {message: "Ops! Something went wrong"};
+    } catch(error) {
+      return {code: 500, message: "Ops! Something went wrong"};
     }
 
   }
 
   /**
    * Get game by id
-   * @param req Request
-   * @param res Response
    */
-  async get(req: Request, res: Response){
-    try{
-      let {id} = req.params;
+  async getGameById(id: string) {
+    try {
       const game = await Game.findOne({_id: id});
 
       if (!game) {
-        return res.status(404).json({message: "Game doesn't exist"});
+        return {code: 404, message: "Game doesn't exist"};
       }
 
       const gameLists = await GameList.find({game_ID: game._id});
@@ -212,35 +198,30 @@ export default class GameController extends DefaultController {
         gameList: users,
       }
 
-      res.status(200).json(gameInfo);
+      return gameInfo;
     } catch(error) {
-      res.status(500).json({message: error.message});
+      return {code: 500, message: error.message};
     }
   }
 
   /**
    *  Delete game
-   * @param req Request
-   * @param res Response
    */
-  async destroy(req: Request, res: Response){
+  async deleteGame(_id: string, host_ID: string) {
     try{
-      const {id} = req.params;
-      const {host_ID} = req.body
-
-      const game = await Game.findOne({_id: id});
-      const gameLists = await GameList.find({game_ID: id});
+      const game = await Game.findOne({_id});
+      const gameLists = await GameList.find({game_ID: _id});
 
       if (!game || game.host_ID !== host_ID) {
-        return res.status(401).json({message: "Game doesn't exist or you are not the host'"});
+        return {code: 401, message: "Game doesn't exist or you are not the host"};
       }
 
       await game.delete();
       await this.destroyObjectArray(gameLists);
 
-      res.status(200).json({message: "Game deleted successfully"});
+      return {message: "Game deleted successfully"};
     } catch(error) {
-      res.status(500).json({message: "Ops! Something went wrong"});
+      return {code: 500, message: "Ops! Something went wrong"};
     }
   }
 }

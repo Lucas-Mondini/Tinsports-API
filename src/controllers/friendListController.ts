@@ -1,4 +1,3 @@
-import { Request, Response } from "express";
 import Friends from "../model/friendsListModel";
 import User from "../model/userModel";
 
@@ -6,35 +5,29 @@ export default class FriendListController {
 
   /**
    *  Get all friends relations
-   * @param req Request
-   * @param res Response
    */
-  async index(req: Request, res: Response){
+  async getAllFriendsRelations() {
     try{
       let friend = await Friends.find();
 
-      res.status(200).json(friend);
+      return friend;
     } catch(error){
-      res.status(500).json({message: 'Ops! Something went wrong!'})
+      return {status: 500, message: "Ops! Something went wrong"};
     }
   }
 
   /**
    * Save new friend relation
-   * @param req Request
-   * @param res Response
    */
-  async save(req: Request, res: Response){
+  async sendFriendInvitation(user_ID: string, friend_ID: string){
 
     try{
-      let {user_ID, friend_ID} = req.body;
-
       const hasFriendRelation = await Friends.find().or([
         {user_ID, friend_ID},
         {friend_ID: user_ID, user_ID: friend_ID}
       ]);
 
-      if (hasFriendRelation.length > 0) return res.status(401).json({message: "Already friends"});
+      if (hasFriendRelation.length > 0) return {status: 500, message: "Already friends"};
 
       let friends = new Friends({
         user_ID, friend_ID, confirmed: false
@@ -42,9 +35,9 @@ export default class FriendListController {
 
       await friends.save();
 
-      res.status(200).send(friends);
+      return friends;
     } catch(error){
-      res.status(500).json({message: "Ops! Something went wrong"});
+      return {status: 500, message: "Ops! Something went wrong"};
     }
 
   }
@@ -87,15 +80,10 @@ export default class FriendListController {
   }
 
   /**
-   *  Get friend relation by id
-   * @param req Request
-   * @param res Response
+   *  Get friend and friend invitations by user id, or friend of friends
    */
-  async get(req: Request, res: Response){
+  async getFriendById(id: string, friendFriends: boolean) {
     try{
-      const {id} = req.params;
-      const {friendFriends} = req.query;
-
       let friendInvites, friends;
 
       if (!friendFriends) {
@@ -103,52 +91,44 @@ export default class FriendListController {
         friendInvites = await this.friendListFormat(id, true);
       } else friends = await this.friendListFormat(id, false);
 
-      res.status(200).json({friends, friendInvites});
+      return {friends, friendInvites};
     } catch(error){
-      res.status(500).json({message: "Ops! Something went wrong"});
+      return {status: 500, message: "Ops! Something went wrong"};
     }
   }
 
   /**
    *  Confirm friend invitation
-   * @param req Request
-   * @param res Response
    */
-   async confirm(req: Request, res: Response){
+   async confirmFriendInvitation(_id: string) {
     try{
-      const {_id} = req.params;
-
       const friendInvitation = await Friends.findOne({_id});
 
-      if (!friendInvitation) return res.status(404).json({message: "Friend request doesn't exist"});
+      if (!friendInvitation) return {status: 404, message: "Friend request doesn't exist"};
 
       friendInvitation.confirmed = true;
       friendInvitation.save();
 
-      res.status(200).json(friendInvitation);
+      return friendInvitation;
     } catch(error){
-      res.status(500).json({message: "Ops! Something went wrong"});
+      return {status: 500, message: "Ops! Something went wrong"};
     }
   }
 
   /**
    *  Delete friend relation
-   * @param req Request
-   * @param res Response
    */
-  async destroy(req: Request, res: Response){
+  async deleteFriend(_id: string) {
     try{
-        let {_id} = req.params;
-
         const friend = await Friends.findOne({_id});
 
         if(!friend)
-            return res.status(404).json({message : "Friend doesn't exist"});
+            return {status: 500, message : "Friend doesn't exist"};
 
         await friend.delete();
-        return res.status(200).json({message:"Friends deleted successfully"});
+        return {message:"Friends deleted successfully"};
         } catch (error) {
-            return res.status(500).json({message:"Ops! Something went wrong"});
+          return {status: 500, message: "Ops! Something went wrong"};
         }
     }
 }

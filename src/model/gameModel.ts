@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 export type GameType = {
+  _id: string;
   name: string;
   type: string;
   location: string;
@@ -8,6 +9,10 @@ export type GameType = {
   description: string;
   value: number;
   host_ID: string;
+  hour: string;
+  finished: boolean;
+  delete: () => void;
+  save: () => void;
 }
 
 const Game = new mongoose.Schema({

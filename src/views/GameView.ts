@@ -1,24 +1,58 @@
 import { Request, Response } from "express";
 import GameController from "../controllers/gameController";
+import DefaultView from "./DefaultView";
 
-export default class GameView {
+export default class GameView extends DefaultView {
 
-  async index(req: Request, res: Response)
+  private gameController: GameController;
+
+  constructor()
   {
-    const games = await new GameController().index();
-
-    res.status(200).json(games);
+    super();
+    this.gameController = new GameController();
   }
 
-  async getHome(req: Request, res: Response)
+  index = async(req: Request, res: Response) =>
+  {
+    const response = await this.gameController.getAllGames();
+
+    this.treatError(res, response);
+  }
+
+  getHome = async(req: Request, res: Response) =>
   {
     const {_id} = req.user || req.query;
-
     const {friendGames} = req.query;
 
-    const response = await new GameController().gamesOfUser(_id, !!friendGames);
+    const response = await this.gameController.getAllGamesOfUser(_id, !!friendGames);
 
-    res.status(200).json(response);
+    this.treatError(res, response);
+  }
+
+  save = async(req: Request, res: Response) =>
+  {
+    const response = await this.gameController.insertNewGame(req.body);
+
+    this.treatError(res, response);
+  }
+
+  get = async(req: Request, res: Response) =>
+  {
+    const {_id} = req.params;
+
+    const response = await this.gameController.getGameById(_id);
+
+    this.treatError(res, response);
+  }
+
+  destroy = async(req: Request, res: Response) =>
+  {
+    const {_id} = req.params;
+    const host_ID = req.user._id;
+
+    const response = await this.gameController.deleteGame(_id, host_ID);
+
+    this.treatError(res, response);
   }
 
 }

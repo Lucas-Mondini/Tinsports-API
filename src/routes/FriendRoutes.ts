@@ -1,24 +1,24 @@
 import { Router } from 'express';
-import FriendListController from "../controllers/friendListController";
 import tokenValidation from '../services/tokenValidation';
+import FriendsView from '../views/FriendsView';
 
 const friendRoutes = Router();
-const friendListController = new FriendListController();
+const friendView = new FriendsView();
 
 // Get all friends, for Staff only
-friendRoutes.get('/friend',         tokenValidation, (req, res) => friendListController.index(req, res));
+friendRoutes.get('/friend',               tokenValidation, friendView.index);
 
 // Get friend by the user id
-friendRoutes.get('/friend/:id',     tokenValidation, (req, res) => friendListController.get(req, res));
+friendRoutes.get('/friend/:id',           tokenValidation, friendView.get);
 
 // Register friend
-friendRoutes.post('/friend',        tokenValidation, (req, res) => friendListController.save(req, res));
+friendRoutes.post('/friend',              tokenValidation, friendView.save);
 
 // Delete friend
-friendRoutes.delete('/friend/:_id', tokenValidation, (req, res) => friendListController.destroy(req, res));
+friendRoutes.delete('/friend/:_id',       tokenValidation, friendView.destroy);
 
 // Confirm friend invitation
-friendRoutes.post('/friend/confirm/:_id', tokenValidation, (req, res) => friendListController.confirm(req, res));
+friendRoutes.post('/friend/confirm/:_id', tokenValidation, friendView.confirm);
 
 export {
   friendRoutes

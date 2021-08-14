@@ -1,4 +1,3 @@
-import { Request, Response } from "express";
 import GameList from "../model/gameListModel";
 import Game from "../model/gameModel";
 import User from "../model/userModel";
@@ -9,31 +8,25 @@ export default class GameListController extends DefaultController{
 
   /**
    * Get all game lists
-   * @param req Request
-   * @param res Response
    */
-  async index(req: Request, res: Response){
+  async getAllGameLists() {
     try{
-      let list = await GameList.find();
+      const list = await GameList.find();
 
-      res.status(200).json(list);
+      return list;
     } catch(error){
-      res.status(500).json({message: 'Ops! Something went wrong!'})
+      return {status: 500, message: 'Ops! Something went wrong!'}
     }
   }
 
   /**
    *  Send a game invitation
-   * @param req Request
-   * @param res Response
    */
-   async inviteUser(req: Request, res: Response){
+   async inviteUser(user_ID: string, game_ID: string){
     try{
-      let {user_ID, game_ID} = req.body;
-
       const checkInvite = await GameList.find({game_ID, user_ID});
 
-      if (checkInvite.length > 0) return res.status(200).json({message: "User already invited"});
+      if (checkInvite.length > 0) return {status: 403, message: "User already invited"};
 
       const gameList = new GameList({
         game_ID,
@@ -43,43 +36,35 @@ export default class GameListController extends DefaultController{
 
       gameList.save();
 
-      res.status(200).json({gameList});
+      return {gameList};
     } catch(error){
-      res.status(500).json({message: "Ops! Something went wrong"});
+      return {status: 500, message: "Ops! Something went wrong"};
     }
   }
 
   /**
    *  Confirma a game invitation
-   * @param req Request
-   * @param res Response
    */
-  async confirmInvitation(req: Request, res: Response){
+  async confirmInvitation(_id: string, user_ID: string){
     try{
-      let {_id, user_ID} = req.body;
-
       const gameList = await GameList.findOne({_id, user_ID});
 
-      if (!gameList) return res.status(404).json({message: "Game List Not Found"});
+      if (!gameList) return {status: 404, message: "Game List Not Found"};
 
       gameList.confirmed = true;
       gameList.save();
 
-      res.status(200).json({gameList});
-    } catch(error){
-      res.status(500).json({message: "Ops! Something went wrong"});
+      return {gameList};
+    } catch(error) {
+      return {status: 500, message: "Ops! Something went wrong"};
     }
   }
 
   /**
    *  Get all invitations of the user
-   * @param req Request
-   * @param res Response
    */
-  async getInvitations(req: Request, res: Response){
+  async getInvitations(userId: string) {
     try{
-      let {userId} = req.params;
-
       const inviteInfo = new Array();
       const gameLists = await GameList.find({user_ID: userId});
 
@@ -102,30 +87,26 @@ export default class GameListController extends DefaultController{
 
       }
 
-      return res.status(200).json(inviteInfo);
+      return inviteInfo;
     } catch(error){
-      res.status(500).json({message: error.message});
+      return {status: 500, message: error.message};
     }
   }
 
   /**
    *  Delete game list
-   * @param req Request
-   * @param res Response
    */
-  async destroy(req: Request, res: Response){
+  async deleteGameInvitation(_id: string) {
     try{
-      let {_id} = req.params;
-
       const gameList = await GameList.findOne({_id});
 
-      if(!gameList) return res.status(404).json({message: "Game doesn't exist"});
+      if(!gameList) return {status: 404, message: "Game doesn't exist"};
 
       await gameList.delete();
 
-      return res.status(200).json({message: "GameList deleted successfully"});
+      return {message: "GameList deleted successfully"};
     } catch (error) {
-      return res.status(500).json({message: "Ops! Something went wrong"});
+      return {status: 500, message: "Ops! Something went wrong"};
     }
   }
 }
