@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Game     from "../model/gameModel";
+import Game, { GameType, GameType }     from "../model/gameModel";
 import GameList from "../model/gameListModel";
 import Friends from "../model/friendsListModel";
 import User from "../model/userModel";
@@ -11,37 +11,33 @@ export default class GameController extends DefaultController {
 
   /**
    * Debug - Get all users
-   * @param req
-   * @param res
    */
-  async index(req: Request, res: Response) {
+  async index() {
     const games = await Game.find();
 
-    res.status(200).json(games);
+    return games;
   }
 
    /**
    *  Get all games involving the user
-   * @param req Request
-   * @param res Response
    */
-   async gamesOfUser(req: Request, res: Response){
+   async gamesOfUser(id: string, friendGames: boolean) {
      try{
-      const {id} = req.params;
-      const {friendGames} = req.query;
       let friendsGames, invitedGames, userGames;
 
       if (!friendGames) {
-        friendsGames   = await this.getFriendsGames(id);
-        invitedGames   = await this.getInvitedGames(id);
-        userGames      = await this.getUserGames(id);
-      } else {userGames = await this.getUserGames(id, false)};
+        friendsGames = await this.getFriendsGames(id);
+        invitedGames = await this.getInvitedGames(id);
+        userGames    = await this.getUserGames(id);
+      } else {
+        userGames = await this.getUserGames(id, false);
+      };
 
       const response = !friendGames ? {invitedGames, friendsGames, userGames} : {userGames};
 
-      res.status(200).json(response);
-    } catch(error){
-      res.status(500).json({message: error.message});
+      return response;
+    } catch(error) {
+      return {message: error.message};
     }
   }
 
@@ -145,10 +141,10 @@ export default class GameController extends DefaultController {
    * @param req Request
    * @param res Response
    */
-  async save(req: Request, res: Response){
+  async save(gameInfo: GameType){
 
     try{
-      let {name, type, location, description, value, host_ID, date, hour} = req.body;
+      let {name, type, location, description, value, host_ID, date, hour} = gameInfo;
 
       let game = new Game({
         name, type, location, description,
@@ -161,15 +157,14 @@ export default class GameController extends DefaultController {
       let gameDate = Number(new Date(FormatDate.dateToDatabase(date, hour)));
 
       if (gameDate < now) {
-        res.status(200).json({error: "The event date cannot be less than the current date"});
-        return;
+        return {error: "The event date cannot be less than the current date"};
       }
 
       await game.save();
 
-      res.status(200).send(game);
+      return {game};
     } catch(error){
-      res.status(500).json({message: "Ops! Something went wrong"});
+      return {message: "Ops! Something went wrong"};
     }
 
   }

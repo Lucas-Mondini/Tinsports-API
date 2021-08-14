@@ -1,15 +1,18 @@
-export default class FormatDate{
+export default class FormatDate {
 
   static dateToDatabase(date: string, hour: string){
     const formatDate = date.split('/');
     const newDate = new Date(`${formatDate[2]}-${formatDate[1]}-${formatDate[0]} ${hour}`);
+
     return newDate;
   }
 
   static toDateString(date: string){
     const formatDate = new Date(date);
+    const day = formatDate.getDate() < 9 ? `0${formatDate.getDate()}` : `${formatDate.getDate()}`;
     const month = formatDate.getMonth() < 9 ? `0${formatDate.getMonth() + 1}` : `${formatDate.getMonth() + 1}`;
-    return `${formatDate.getDate()}/${month}/${formatDate.getFullYear()}`
+
+    return `${day}/${month}/${formatDate.getFullYear()}`;
   }
 
   static hourToString(date: string){
