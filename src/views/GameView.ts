@@ -21,7 +21,7 @@ export default class GameView extends DefaultView {
 
   getHome = async(req: Request, res: Response) =>
   {
-    const {_id} = req.user || req.query;
+    const _id = req.query._id ? req.query._id : req.user;
     const {friendGames} = req.query;
 
     const response = await this.gameController.getAllGamesOfUser(_id, !!friendGames);

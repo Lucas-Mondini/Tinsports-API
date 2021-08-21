@@ -6,10 +6,10 @@ const friendRoutes = Router();
 const friendView = new FriendsView();
 
 // Get all friends, for Staff only
-friendRoutes.get('/friend',               tokenValidation, friendView.index);
+friendRoutes.get('/friends',              tokenValidation, friendView.index);
 
 // Get friend by the user id
-friendRoutes.get('/friend/:id',           tokenValidation, friendView.get);
+friendRoutes.get('/friend',               tokenValidation, friendView.get);
 
 // Register friend
 friendRoutes.post('/friend',              tokenValidation, friendView.save);

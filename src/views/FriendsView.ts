@@ -22,7 +22,7 @@ export default class FriendsView extends DefaultView {
 
   get = async(req: Request, res: Response) =>
   {
-    const {_id} = req.params || req.user;
+    const {_id} = req.user || req.query;
     const {friendsFriends} = req.query;
 
     const response = await this.friendsController.getFriendById(_id, !!friendsFriends);

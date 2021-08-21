@@ -36,7 +36,7 @@ export default class GameController extends DefaultController {
 
       return response;
     } catch(error) {
-      return {code: 500, message: error.message};
+      return {status: 500, message: error.message};
     }
   }
 
@@ -137,7 +137,7 @@ export default class GameController extends DefaultController {
 
       let game = new Game({
         name, type, location, description,
-        value: FormatStrings.formatMoneyToDatabase(String(value)),
+        value: value ? FormatStrings.formatMoneyToDatabase(String(value)) : null,
         date: FormatDate.dateToDatabase(date, hour),
         host_ID, hour, finished: false
       });
@@ -146,14 +146,14 @@ export default class GameController extends DefaultController {
       let gameDate = Number(new Date(FormatDate.dateToDatabase(date, hour)));
 
       if (gameDate < now) {
-        return {code: 401, error: "The event date cannot be less than the current date"};
+        return {status: 401, error: "The event date cannot be less than the current date"};
       }
 
       await game.save();
 
       return {game};
     } catch(error) {
-      return {code: 500, message: "Ops! Something went wrong"};
+      return {status: 500, message: "Ops! Something went wrong"};
     }
 
   }
@@ -166,7 +166,7 @@ export default class GameController extends DefaultController {
       const game = await Game.findOne({_id: id});
 
       if (!game) {
-        return {code: 404, message: "Game doesn't exist"};
+        return {status: 404, message: "Game doesn't exist"};
       }
 
       const gameLists = await GameList.find({game_ID: game._id});
@@ -200,7 +200,7 @@ export default class GameController extends DefaultController {
 
       return gameInfo;
     } catch(error) {
-      return {code: 500, message: error.message};
+      return {status: 500, message: error.message};
     }
   }
 
@@ -213,7 +213,7 @@ export default class GameController extends DefaultController {
       const gameLists = await GameList.find({game_ID: _id});
 
       if (!game || game.host_ID !== host_ID) {
-        return {code: 401, message: "Game doesn't exist or you are not the host"};
+        return {status: 401, message: "Game doesn't exist or you are not the host"};
       }
 
       await game.delete();
@@ -221,7 +221,7 @@ export default class GameController extends DefaultController {
 
       return {message: "Game deleted successfully"};
     } catch(error) {
-      return {code: 500, message: "Ops! Something went wrong"};
+      return {status: 500, message: "Ops! Something went wrong"};
     }
   }
 }
