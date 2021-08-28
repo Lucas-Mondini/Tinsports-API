@@ -1,5 +1,6 @@
-import Friends from "../model/friendsListModel";
+import Friends, { FriendsType } from "../model/friendsListModel";
 import User from "../model/userModel";
+import GameList, { GameListType } from "../model/gameListModel";
 
 export default class FriendListController {
 
@@ -27,7 +28,7 @@ export default class FriendListController {
         {friend_ID: user_ID, user_ID: friend_ID}
       ]);
 
-      if (hasFriendRelation.length > 0) return {status: 500, message: "Already friends"};
+      if (hasFriendRelation.length > 0) return {status: 401, message: "Already friends"};
 
       let friends = new Friends({
         user_ID, friend_ID, confirmed: false
@@ -42,12 +43,7 @@ export default class FriendListController {
 
   }
 
-  async friendListFormat(id: string, invitation: boolean = false) {
-    const friends = !invitation ? await Friends.find().or([
-      {user_ID: id},
-      {friend_ID: id}
-    ]) : await Friends.find({friend_ID: id});
-
+  async friendListFormat(friends: FriendsType[], id: string, invitation: boolean = false) {
     const userInfoList = new Array();
 
     if (friends.length > 0) {
@@ -86,13 +82,44 @@ export default class FriendListController {
     try{
       let friendInvites, friends;
 
+      const friendsList = !friendFriends ? await Friends.find().or([
+        {user_ID: id},
+        {friend_ID: id}
+      ]) : await Friends.find({friend_ID: id});
+
       if (!friendFriends) {
-        friends = await this.friendListFormat(id, false);
-        friendInvites = await this.friendListFormat(id, true);
-      } else friends = await this.friendListFormat(id, false);
+        friends = await this.friendListFormat(friendsList, id, false);
+        friendInvites = await this.friendListFormat(friendsList, id, true);
+      } else friends = await this.friendListFormat(friendsList, id, false);
 
       return {friends, friendInvites};
     } catch(error){
+      return {status: 500, message: "Ops! Something went wrong"};
+    }
+  }
+
+  async getFriendsNotInGameList(id: string, gameId: string)
+  {
+    try {
+      const inviteFriends = new Array();
+      const friends = await Friends.find().or([
+        {user_ID: id},
+        {friend_ID: id}
+      ]).and({confirmed: true});
+
+      const gameLists = await GameList.find({game_ID: gameId});
+
+      for (const friend of friends) {
+        const [user] = gameLists.filter((gameList: GameListType) => friend.user_ID === gameList.user_ID);
+        const [user2] = gameLists.filter((gameList: GameListType) => friend.friend_ID === gameList.user_ID);
+
+        if (!user && !user2) {
+          inviteFriends.push(friend);
+        }
+      }
+
+      return this.friendListFormat(inviteFriends, id);
+    } catch (error) {
       return {status: 500, message: "Ops! Something went wrong"};
     }
   }

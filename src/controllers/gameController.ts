@@ -48,6 +48,7 @@ export default class GameController extends DefaultController {
 
     for (let game of games) {
       const {_id, name, location, host_ID, date} = game;
+      let push = true;
 
       const fiveDays = 5 * 24 * 60 * 60 * 1000;
       let now = Number(Date.now()) - (Number(process.env.SERVER_TIME) || 0);
@@ -58,15 +59,18 @@ export default class GameController extends DefaultController {
         await game.save();
 
         if (gameDate + fiveDays < now) {
+          push = false;
           await game.delete();
         }
 
         if (!userGame && game.finished) break;
       }
 
-      gamesInfo.push({
-        _id, name, location, host_ID, hour: FormatDate.hourToString(date), finished: game.finished
-      });
+      if (push) {
+        gamesInfo.push({
+          _id, name, location, host_ID, hour: FormatDate.hourToString(date), finished: game.finished
+        });
+      }
     }
 
     return gamesInfo;
@@ -169,7 +173,22 @@ export default class GameController extends DefaultController {
         return {status: 404, message: "Game doesn't exist"};
       }
 
-      const gameLists = await GameList.find({game_ID: game._id});
+      const fiveDays = 5 * 24 * 60 * 60 * 1000;
+      let now = Number(Date.now()) - (Number(process.env.SERVER_TIME) || 0);
+      let gameDate = Number(new Date(game.date));
+
+      if (gameDate < now) {
+        game.finished = true;
+        await game.save();
+
+        if (gameDate + fiveDays < now) {
+          await game.delete();
+        }
+      }
+
+      const gameLists = game.finished
+                          ? await GameList.find({game_ID: game._id, confirmed: true})
+                          : await GameList.find({game_ID: game._id});
       const host = await User.findOne({_id: game.host_ID});
       const users = new Array();
 

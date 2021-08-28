@@ -4,7 +4,7 @@ import DefaultView from "./DefaultView";
 
 export default class UserView extends DefaultView {
 
-  private userController = new UserController();
+  private userController: UserController;
 
   constructor()
   {
@@ -22,7 +22,8 @@ export default class UserView extends DefaultView {
   name = async(req: Request, res: Response) =>
   {
     const {name} = req.params;
-    const response = await this.userController.getUserByName(name);
+    const {_id} = req.user;
+    const response = await this.userController.getUserByName(name, _id);
 
     this.treatError(res, response);
   }

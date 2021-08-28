@@ -22,10 +22,20 @@ export default class FriendsView extends DefaultView {
 
   get = async(req: Request, res: Response) =>
   {
-    const {_id} = req.user || req.query;
+    const _id = req.query._id ? req.query._id : req.user._id;
     const {friendsFriends} = req.query;
 
     const response = await this.friendsController.getFriendById(_id, !!friendsFriends);
+
+    this.treatError(res, response);
+  }
+
+  invite = async(req: Request, res: Response) =>
+  {
+    const {_id} = req.user;
+    const {gameId} = req.params;
+
+    const response = await this.friendsController.getFriendsNotInGameList(_id, gameId);
 
     this.treatError(res, response);
   }
