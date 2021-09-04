@@ -22,13 +22,18 @@ export default class UserController extends DefaultController {
   async getUserByName(name: String, id: string) {
     try {
       const availableUsers = new Array();
+      let users;
 
       const friends = await Friends.find().or([
         { user_ID: id },
         { friend_ID: id }
       ]);
 
-      const users = await User.find({ name: { $regex: '.*' + name + '.*' } });
+      if (name === '*') {
+        users = await User.find();
+      } else {
+        users = await User.find({ name: { $regex: '.*' + name + '.*' } });
+      }
 
       for (const user of users) {
         const [alreadyFriends] = friends.filter((friend: FriendsType) => friend.user_ID == user._id || friend.friend_ID == user._id);
@@ -71,9 +76,10 @@ export default class UserController extends DefaultController {
 
       if (pass == confPass) {
         hash = await bcrypt.hash(pass, 10);
-      }
+      } else return { status: 401, message: "Passwords don't match" };
+
       if (hash) {
-        const user = new User({ name, email, pass: hash, reputation: null });
+        const user = new User({ name, email, pass: hash, reputation: null, photo: "", premium: false });
 
         let tokenSecret = String(process.env.TOKEN_SECRET);
 
@@ -150,9 +156,9 @@ export default class UserController extends DefaultController {
       if (!user)
         return { status: 404, error: "User doesn't exist" };
 
-      let r = await bcrypt.compare(pass, user.pass);
+      let passCompare = await bcrypt.compare(pass, user.pass);
 
-      if (!r)
+      if (!passCompare)
         return { status: 401, error: "Email or password is incorrect" };
 
       let userUpdate = {
@@ -195,7 +201,9 @@ export default class UserController extends DefaultController {
           name: user.name,
           email: user.email,
           auth_token: token,
-          reputation: user.reputation
+          reputation: user.reputation,
+          photo: user.photo,
+          premium: user.premium
         };
       }
 

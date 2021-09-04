@@ -31,7 +31,9 @@ export default class GameView extends DefaultView {
 
   save = async(req: Request, res: Response) =>
   {
-    const response = await this.gameController.insertNewGame(req.body);
+    const {_id} = req.user;
+
+    const response = await this.gameController.insertNewGame(req.body, _id);
 
     this.treatError(res, response);
   }

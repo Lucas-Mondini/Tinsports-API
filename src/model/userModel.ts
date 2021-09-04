@@ -11,6 +11,8 @@ export type UserType = {
   newName: string;
   newPass: string;
   newEmail: string;
+  photo: string;
+  premium: boolean;
 }
 
 const User = new mongoose.Schema({
@@ -33,7 +35,15 @@ const User = new mongoose.Schema({
   reputation:{
     type: Number,
     required: false
-  }
+  },
+  photo:{
+    type: String,
+    required: false
+  },
+  premium:{
+    type: Boolean,
+    required: true
+  },
 });
 
 export default mongoose.model ("User", User);

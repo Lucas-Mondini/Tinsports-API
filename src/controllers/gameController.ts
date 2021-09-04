@@ -134,20 +134,28 @@ export default class GameController extends DefaultController {
   /**
    * Save new game
    */
-  async insertNewGame(gameInfo: GameType) {
+  async insertNewGame(gameInfo: GameType, userId: string) {
 
     try {
-      let {name, type, location, description, value, host_ID, date, hour} = gameInfo;
+      const user = await User.findOne({_id: userId});
+      const userGames = await Game.find({host_ID: userId});
+      const {name, type, location, description, value, date, hour} = gameInfo;
 
-      let game = new Game({
+      if (!user) return {status: 404, message: "User not found"}
+
+      if (!user.premium && userGames.length >= 5) {
+        return {status: 401, message: "Only premium users can insert more than 5 games"}
+      }
+
+      const game = new Game({
         name, type, location, description,
         value: value ? FormatStrings.formatMoneyToDatabase(String(value)) : null,
         date: FormatDate.dateToDatabase(date, hour),
-        host_ID, hour, finished: false
+        host_ID: userId, hour, finished: false
       });
 
-      let now = Number(Date.now()) - (Number(process.env.SERVER_TIME) || 0);
-      let gameDate = Number(new Date(FormatDate.dateToDatabase(date, hour)));
+      const now = Number(Date.now()) - (Number(process.env.SERVER_TIME) || 0);
+      const gameDate = Number(new Date(FormatDate.dateToDatabase(date, hour)));
 
       if (gameDate < now) {
         return {status: 401, error: "The event date cannot be less than the current date"};
