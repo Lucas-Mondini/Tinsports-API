@@ -70,6 +70,16 @@ export default class UserView extends DefaultView {
     this.treatError(res, response);
   }
 
+  photo = async(req: Request, res: Response) =>
+  {
+    const {_id} = req.user;
+    const { photoUrl } = req.body;
+
+    const response = await this.userController.updatePhoto(_id, photoUrl);
+
+    this.treatError(res, response);
+  }
+
   login = async(req: Request, res: Response) =>
   {
     const {email, pass} = req.body;

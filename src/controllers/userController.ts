@@ -179,6 +179,22 @@ export default class UserController extends DefaultController {
 
   }
 
+  async updatePhoto(_id: string, photoUrl: string) {
+    try {
+      const user = await User.findOne({_id});
+      if (!user) return { status: 404, message: "User not found" };
+
+      if (!user.premium) user.premium = false;
+
+      user.photo = photoUrl;
+      user.save();
+
+      return { message: "Photo update successfully" };
+    } catch (error) {
+      return { status: 500, message: "Ops! Something went wrong" };
+    }
+  }
+
   /**
    * Method that makes the login
    */

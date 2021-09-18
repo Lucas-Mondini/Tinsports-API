@@ -43,14 +43,11 @@ export default class FriendListController {
 
   }
 
-  async friendListFormat(friends: FriendsType[], id: string, invitation: boolean = false) {
+  async friendListFormat(friends: FriendsType[], id: string) {
     const userInfoList = new Array();
 
     if (friends.length > 0) {
       for (let friend of friends) {
-        if (!invitation && !friend.confirmed) break;
-        if (invitation && friend.confirmed) break;
-
         let user;
 
         if (friend.user_ID === id) {
@@ -65,7 +62,8 @@ export default class FriendListController {
           name: user.name,
           email: user.email,
           reputation: user.reputation,
-          confirmed: friend.confirmed
+          confirmed: friend.confirmed,
+          photo: user.photo
         };
 
         if (user) userInfoList.push(responseUser);
@@ -85,12 +83,14 @@ export default class FriendListController {
       const friendsList = !friendFriends ? await Friends.find().or([
         {user_ID: id},
         {friend_ID: id}
-      ]) : await Friends.find({friend_ID: id});
+      ]).and({confirmed: true}) : await Friends.find({friend_ID: id});
+
+      const inviteList = !friendFriends ? await Friends.find({friend_ID: id, confirmed: false}) : null;
 
       if (!friendFriends) {
-        friends = await this.friendListFormat(friendsList, id, false);
-        friendInvites = await this.friendListFormat(friendsList, id, true);
-      } else friends = await this.friendListFormat(friendsList, id, false);
+        friends = await this.friendListFormat(friendsList, id);
+        friendInvites = await this.friendListFormat(inviteList, id);
+      } else friends = await this.friendListFormat(friendsList, id);
 
       return {friends, friendInvites};
     } catch(error){

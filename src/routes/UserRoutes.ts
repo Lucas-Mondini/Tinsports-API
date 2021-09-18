@@ -24,6 +24,9 @@ userRoutes.delete('/register/user',                 tokenValidation, usersView.d
 userRoutes.put('/register/user',                    tokenValidation, usersView.update);
 
 // Update user
+userRoutes.put('/register/photo',                   tokenValidation, usersView.photo);
+
+// Update user
 userRoutes.post('/register/user/update-reputation', tokenValidation, usersView.reputation);
 
 // User Login

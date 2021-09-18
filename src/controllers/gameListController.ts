@@ -70,6 +70,11 @@ export default class GameListController extends DefaultController{
 
       for (const gameList of gameLists) {
         const game = await Game.findOne({_id: gameList.game_ID});
+
+        if (!game) {
+          gameList.delete();
+        }
+
         const host = await User.findOne({_id: game.host_ID});
 
         if (!gameList.confirmed && game && host) {
@@ -88,8 +93,8 @@ export default class GameListController extends DefaultController{
       }
 
       return inviteInfo;
-    } catch(error){
-      return {status: 500, message: error.message};
+    } catch(error: any) {
+      return {status: 500, message: "Ops! Something went wrong"};
     }
   }
 

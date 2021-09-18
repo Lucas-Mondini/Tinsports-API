@@ -35,7 +35,7 @@ export default class GameController extends DefaultController {
       const response = !friendGames ? {invitedGames, friendsGames, userGames} : {userGames};
 
       return response;
-    } catch(error) {
+    } catch(error: any) {
       return {status: 500, message: error.message};
     }
   }
@@ -208,7 +208,8 @@ export default class GameController extends DefaultController {
           name: user.name,
           email: user.email,
           confirmed: gameList.confirmed,
-          reputation: user.reputation
+          reputation: user.reputation,
+          photo: user.photo
         });
       }
 
@@ -226,7 +227,7 @@ export default class GameController extends DefaultController {
       }
 
       return gameInfo;
-    } catch(error) {
+    } catch(error: any) {
       return {status: 500, message: error.message};
     }
   }

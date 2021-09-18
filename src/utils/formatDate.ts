@@ -10,7 +10,7 @@ export default class FormatDate {
   static toDateString(date: string){
     const formatDate = new Date(date);
     const day = formatDate.getDate() <= 9 ? `0${formatDate.getDate()}` : `${formatDate.getDate()}`;
-    const month = formatDate.getMonth() <= 9 ? `0${formatDate.getMonth() + 1}` : `${formatDate.getMonth() + 1}`;
+    const month = formatDate.getMonth() + 1 <= 9 ? `0${formatDate.getMonth() + 1}` : `${formatDate.getMonth() + 1}`;
 
     return `${day}/${month}/${formatDate.getFullYear()}`;
   }
