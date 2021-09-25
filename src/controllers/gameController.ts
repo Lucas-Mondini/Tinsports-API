@@ -48,7 +48,6 @@ export default class GameController extends DefaultController {
 
     for (let game of games) {
       const {_id, name, location, host_ID, date} = game;
-      let push = true;
 
       const fiveDays = 5 * 24 * 60 * 60 * 1000;
       let now = Number(Date.now()) - (Number(process.env.SERVER_TIME) || 0);
@@ -59,18 +58,18 @@ export default class GameController extends DefaultController {
         await game.save();
 
         if (gameDate + fiveDays < now) {
-          push = false;
+          const gameLists = GameList.find({game_Id: game._id});
+          this.destroyObjectArray(gameLists);
           await game.delete();
+          continue;
         }
 
-        if (!userGame && game.finished) break;
+        if (!userGame && game.finished) continue;
       }
 
-      if (push) {
-        gamesInfo.push({
-          _id, name, location, host_ID, hour: FormatDate.hourToString(date), finished: game.finished
-        });
-      }
+      gamesInfo.push({
+        _id, name, location, host_ID, hour: FormatDate.hourToString(date), finished: game.finished
+      });
     }
 
     return gamesInfo;
@@ -80,14 +79,12 @@ export default class GameController extends DefaultController {
    *  Get friends games
    */
   async getFriendsGames(id: string) {
-    const friends = await Friends.find({user_ID: id});
-    const friends2 = await Friends.find({friend_ID: id});
+    const friends = await Friends.find({user_ID: id, confirmed: true});
+    const friends2 = await Friends.find({friend_ID: id, confirmed: true});
     const friendsGames = new Array();
 
     if (friends.length > 0) {
       for (const friend of friends) {
-        if (!friend.confirmed) break;
-
         const games = await Game.find({host_ID: friend.friend_ID});
 
         friendsGames.push(...games);
@@ -96,14 +93,13 @@ export default class GameController extends DefaultController {
 
     if (friends2.length > 0) {
       for (const friend2 of friends2) {
-        if (!friend2.confirmed) break;
-
         const games2 = await Game.find({host_ID: friend2.user_ID});
+
         friendsGames.push(...games2);
       }
     }
 
-    return this.formatGames(friendsGames);
+    return await this.formatGames(friendsGames);
   }
 
   /**
@@ -112,7 +108,7 @@ export default class GameController extends DefaultController {
   async getUserGames(id: string, showFinished: boolean = true) {
     const userGames = await Game.find({host_ID: id});
 
-    return this.formatGames(userGames, showFinished);
+    return await this.formatGames(userGames, showFinished);
   }
 
   /**
@@ -128,7 +124,7 @@ export default class GameController extends DefaultController {
       invitedGames.push(...games);
     }
 
-    return this.formatGames(invitedGames);
+    return await this.formatGames(invitedGames);
   }
 
   /**
