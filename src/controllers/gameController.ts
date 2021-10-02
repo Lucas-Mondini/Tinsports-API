@@ -58,7 +58,7 @@ export default class GameController extends DefaultController {
         await game.save();
 
         if (gameDate + fiveDays < now) {
-          const gameLists = GameList.find({game_Id: game._id});
+          const gameLists = await GameList.find({game_Id: game._id});
           this.destroyObjectArray(gameLists);
           await game.delete();
           continue;

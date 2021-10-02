@@ -73,6 +73,7 @@ export default class GameListController extends DefaultController{
 
         if (!game) {
           gameList.delete();
+          continue;
         }
 
         const host = await User.findOne({_id: game.host_ID});
