@@ -36,8 +36,8 @@ export default class GameListController extends DefaultController{
 
       gameList.save();
 
-      return {gameList};
-    } catch(error){
+      return gameList;
+    } catch(error) {
       return {status: 500, message: "Ops! Something went wrong"};
     }
   }
@@ -78,7 +78,7 @@ export default class GameListController extends DefaultController{
 
         const host = await User.findOne({_id: game.host_ID});
 
-        if (!gameList.confirmed && game && host) {
+        if (!gameList.confirmed && game && !game.finished && host) {
           inviteInfo.push({
             _id: gameList._id,
             host_ID: host._id,

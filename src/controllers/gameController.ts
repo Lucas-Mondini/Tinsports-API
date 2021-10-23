@@ -49,23 +49,9 @@ export default class GameController extends DefaultController {
     for (let game of games) {
       const {_id, name, location, host_ID, date} = game;
 
-      const fiveDays = 5 * 24 * 60 * 60 * 1000;
-      let now = Number(Date.now()) - (Number(process.env.SERVER_TIME) || 0);
-      let gameDate = Number(new Date(date));
+      if (await this.finishedGameLogic(game)) continue;
 
-      if (gameDate < now) {
-        game.finished = true;
-        await game.save();
-
-        if (gameDate + fiveDays < now) {
-          const gameLists = await GameList.find({game_Id: game._id});
-          this.destroyObjectArray(gameLists);
-          await game.delete();
-          continue;
-        }
-
-        if (!userGame && game.finished) continue;
-      }
+      if (!userGame && game.finished) continue;
 
       gamesInfo.push({
         _id, name, location, host_ID, hour: FormatDate.hourToString(date), finished: game.finished
@@ -115,7 +101,7 @@ export default class GameController extends DefaultController {
    * Get invited Games
    */
   async getInvitedGames(id: string) {
-    const gameLists = await GameList.find({user_ID: id});
+    const gameLists = await GameList.find({user_ID: id, confirmed: false});
     const invitedGames = new Array();
 
     for (const gameList of gameLists) {
@@ -140,7 +126,7 @@ export default class GameController extends DefaultController {
       if (!user) return {status: 404, message: "User not found"}
 
       if (!user.premium && userGames.length >= 5) {
-        return {status: 401, message: "Only premium users can insert more than 5 games"}
+        return {status: 403, message: "Only premium users can insert more than 5 games"}
       }
 
       const game = new Game({
@@ -171,32 +157,20 @@ export default class GameController extends DefaultController {
    */
   async getGameById(id: string) {
     try {
-      const game = await Game.findOne({_id: id});
+      let game = await Game.findOne({_id: id});
 
-      if (!game) {
+      if (!game || await this.finishedGameLogic(game)) {
         return {status: 404, message: "Game doesn't exist"};
       }
 
-      const fiveDays = 5 * 24 * 60 * 60 * 1000;
-      let now = Number(Date.now()) - (Number(process.env.SERVER_TIME) || 0);
-      let gameDate = Number(new Date(game.date));
+      const gameLists = await GameList.find({game_ID: game._id});
 
-      if (gameDate < now) {
-        game.finished = true;
-        await game.save();
-
-        if (gameDate + fiveDays < now) {
-          await game.delete();
-        }
-      }
-
-      const gameLists = game.finished
-                          ? await GameList.find({game_ID: game._id, confirmed: true})
-                          : await GameList.find({game_ID: game._id});
       const host = await User.findOne({_id: game.host_ID});
       const users = new Array();
 
       for (const gameList of gameLists) {
+        if (!gameList.confirmed && game.finished) continue;
+
         const user = await User.findOne({_id: gameList.user_ID});
         users.push({
           _id: gameList._id,
@@ -225,6 +199,39 @@ export default class GameController extends DefaultController {
       return gameInfo;
     } catch(error: any) {
       return {status: 500, message: error.message};
+    }
+  }
+
+  /**
+   *  Delete game
+   */
+   async finishedGameLogic(game: GameType) {
+    try{
+      const fiveDays = 5 * 24 * 60 * 60 * 1000;
+      let now = Number(Date.now()) - (Number(process.env.SERVER_TIME) || 0);
+      let gameDate = Number(new Date(game.date));
+
+      if (gameDate < now) {
+        const confirmedGameLists = await GameList.find({game_ID: game._id, confirmed: true});
+        game.finished = true;
+        await game.save();
+
+        if (confirmedGameLists.length === 0) {
+          const gameLists = await GameList.find({game_ID: game._id});
+          this.destroyObjectArray(gameLists);
+          await game.delete();
+          return true;
+        }
+      } if (gameDate + fiveDays < now) {
+        const gameLists = await GameList.find({game_ID: game._id});
+        this.destroyObjectArray(gameLists);
+        await game.delete();
+        return true;
+      }
+
+      return false;
+    } catch(error) {
+      return {status: 500, message: "Ops! Something went wrong"};
     }
   }
 

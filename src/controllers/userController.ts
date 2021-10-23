@@ -56,6 +56,8 @@ export default class UserController extends DefaultController {
     try {
       const user = await User.findOne({ _id });
 
+      if (!user) return { status: 404, message: "User doesn't exist'" };
+
       return user;
     } catch (e) {
       return { status: 500, message: "Ops! Something went wrong" };
@@ -232,7 +234,7 @@ export default class UserController extends DefaultController {
   async updateReputationMethod(paid: boolean, participated: boolean, user_ID: string) {
     const user = await User.findOne({ _id: user_ID });
 
-    if (!user) return { status: 404, message: "User doesn't exist'" };
+    if (!user) return false;
 
     let reputation = user.reputation || 50;
 
