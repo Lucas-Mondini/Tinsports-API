@@ -7,6 +7,7 @@ import { friendRoutes } from './routes/FriendRoutes';
 import { userRoutes } from './routes/UserRoutes';
 import { gameRoutes } from './routes/GameRoutes';
 import { gameListRoutes } from './routes/GameListRoutes';
+import Equalizer from './utils/Equalizer';
 
 const corsOptions = {
   origin: "*",
@@ -23,6 +24,11 @@ app.use(friendRoutes);
 app.use(gameListRoutes);
 
 mongo.connect();
+
+new Equalizer()
+      .equalize()
+      .then(() => {console.log("Equalization Success")})
+      .catch((err) => {console.log("Error", err)});
 
 app.listen(process.env.PORT, () => {
   console.log('Server Started');

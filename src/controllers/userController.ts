@@ -186,8 +186,6 @@ export default class UserController extends DefaultController {
       const user = await User.findOne({_id});
       if (!user) return { status: 404, message: "User not found" };
 
-      if (!user.premium) user.premium = false;
-
       user.photo = photoUrl;
       user.save();
 
