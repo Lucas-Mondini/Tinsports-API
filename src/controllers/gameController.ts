@@ -6,6 +6,8 @@ import FormatDate from "../utils/formatDate";
 import FormatStrings from "../utils/formatStrings";
 import DefaultController from "./DefaultController";
 
+import moment from "moment-timezone";
+
 export default class GameController extends DefaultController {
 
   /**
@@ -54,7 +56,7 @@ export default class GameController extends DefaultController {
       if (!userGame && game.finished) continue;
 
       gamesInfo.push({
-        _id, name, location, host_ID, hour: FormatDate.hourToString(date), finished: game.finished
+        _id, name, location, host_ID, hour: moment(date).format("HH:mm"), finished: game.finished
       });
     }
 
@@ -136,10 +138,11 @@ export default class GameController extends DefaultController {
         host_ID: userId, hour, finished: false
       });
 
-      const now = Number(Date.now()) - (Number(process.env.SERVER_TIME) || 0);
-      const gameDate = Number(new Date(FormatDate.dateToDatabase(date, hour)));
+      const nowDateString = moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
+      const now = Number(new Date(nowDateString));
+      const gameDate = Number(new Date(game.date))
 
-      if (gameDate < now) {
+      if (gameDate <= now) {
         return {status: 401, error: "The event date cannot be less than the current date"};
       }
 
@@ -147,6 +150,7 @@ export default class GameController extends DefaultController {
 
       return {game};
     } catch(error) {
+      console.log(error)
       return {status: 500, message: "Ops! Something went wrong"};
     }
 
@@ -191,8 +195,8 @@ export default class GameController extends DefaultController {
         _id, host_ID, finished,
         name, type, location, description,
         value: FormatStrings.formatMoneyToUser(value),
-        date: FormatDate.toDateString(date),
-        hour: FormatDate.hourToString(date),
+        date: moment(date).format("DD/MM/YYYY"),
+        hour: moment(date).format("HH:mm"),
         gameList: users,
       }
 
@@ -207,26 +211,23 @@ export default class GameController extends DefaultController {
    */
    async finishedGameLogic(game: GameType) {
     try{
-      const fiveDays = 5 * 24 * 60 * 60 * 1000;
-      let now = Number(Date.now()) - (Number(process.env.SERVER_TIME) || 0);
-      let gameDate = Number(new Date(game.date));
+      const nowDateString = moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm"),
+            now = Number(new Date(nowDateString)),
+            gameDateTime = moment(game.date).tz("America/Sao_Paulo"),
+            gameDate = Number(new Date(gameDateTime.format("YYYY-MM-DD[T]HH:mm"))),
+            gameDatePlusFiveDays = Number(new Date(gameDateTime.add(5, 'days').format("YYYY-MM-DD[T]HH:mm")));
 
-      if (gameDate < now) {
+      if (Number(new Date(gameDate)) <= now) {
         const confirmedGameLists = await GameList.find({game_ID: game._id, confirmed: true});
         game.finished = true;
         await game.save();
 
-        if (confirmedGameLists.length === 0) {
+        if ((confirmedGameLists.length === 0) || (gameDatePlusFiveDays <= now)) {
           const gameLists = await GameList.find({game_ID: game._id});
           this.destroyObjectArray(gameLists);
           await game.delete();
           return true;
         }
-      } if (gameDate + fiveDays < now) {
-        const gameLists = await GameList.find({game_ID: game._id});
-        this.destroyObjectArray(gameLists);
-        await game.delete();
-        return true;
       }
 
       return false;

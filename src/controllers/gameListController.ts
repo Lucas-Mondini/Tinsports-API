@@ -1,8 +1,9 @@
 import GameList from "../model/gameListModel";
 import Game from "../model/gameModel";
 import User from "../model/userModel";
-import FormatDate from "../utils/formatDate";
 import DefaultController from "./DefaultController";
+
+import moment from "moment-timezone";
 
 export default class GameListController extends DefaultController{
 
@@ -86,8 +87,8 @@ export default class GameListController extends DefaultController{
             gameName: game.name,
             location: game.location,
             hostName: host.name,
-            date: FormatDate.toDateString(game.date),
-            hour: FormatDate.hourToString(game.date)
+            date: moment(game.date).format("DD/MM/YYYY"),
+            hour: moment(game.date).format("HH:mm")
           });
         };
 
