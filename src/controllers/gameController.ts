@@ -139,8 +139,9 @@ export default class GameController extends DefaultController {
       });
 
       const nowDateString = moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
+      const gameDateString = moment(game.date).tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
       const now = Number(new Date(nowDateString));
-      const gameDate = Number(new Date(game.date))
+      const gameDate = Number(new Date(gameDateString));
 
       if (gameDate <= now) {
         return {status: 401, error: "The event date cannot be less than the current date"};
