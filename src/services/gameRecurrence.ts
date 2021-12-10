@@ -3,10 +3,15 @@ import { Number } from 'mongoose';
 
 import Game, { GameType }     from "../model/gameModel";
 
+import gameListController from '../controllers/gameListController';
+const GLC = new gameListController();
+
+
 async function createGame(game: GameType) {
     let new_date: Date = new Date();
     new_date.setDate(new_date.getDate() + 7);
     game.date = new_date.toString();
+    const old_id = game._id;
 
     const {name, type, location, description, value, date, host_ID, recurrence} = game;
     game = new Game({
@@ -22,6 +27,8 @@ async function createGame(game: GameType) {
     })
     await game.save();
     console.log('jogo criado');
+
+    await GLC.cloneGameListToNewGame(old_id, game._id);
 
     return {game};
 }

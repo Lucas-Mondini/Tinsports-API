@@ -20,6 +20,22 @@ export default class GameListController extends DefaultController{
     }
   }
 
+  //intern utility function
+    /**
+   * @param GameID
+   * @returns list of id from users on the game
+   */
+
+     async getGameUserListByGameId(ID: String) {
+      const userList = new Array();
+      const gameLists = await GameList.find({game_ID: ID});
+  
+      for (const i of gameLists) 
+        userList.push(i.user_ID);
+
+      return userList;
+    }
+
   /**
    *  Send a game invitation
    */
@@ -44,7 +60,7 @@ export default class GameListController extends DefaultController{
   }
 
   /**
-   *  Confirma a game invitation
+   *  Confirms a game invitation
    */
   async confirmInvitation(_id: string, user_ID: string){
     try{
@@ -116,4 +132,29 @@ export default class GameListController extends DefaultController{
       return {status: 500, message: "Ops! Something went wrong"};
     }
   }
+
+  //BELOW HERE ONLY SYSTEM WILL USE
+  //PLEASE COMENT WHERE THE FUNCTION WILL BE USED
+  /**
+   * create a clone of a gamelist with new game ID and without confirmation
+   * @param NewGame_ID 
+   */
+  async cloneGameListToNewGame(OldGame_ID: String, NewGame_ID: String) {
+    const newList = Array();
+    let userList = await this.getGameUserListByGameId(OldGame_ID);
+
+    for (const user_ID of userList) {
+      const list = new GameList({
+        game_ID: NewGame_ID,
+        user_ID: user_ID,
+        confirmed: false
+      })
+      await list.save();
+      newList.push(list)
+    }
+    
+    return newList;
+  }
+
+
 }

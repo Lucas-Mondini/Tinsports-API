@@ -156,11 +156,7 @@ export default class GameController extends DefaultController {
 
       return {game};
     } catch(error) {
-<<<<<<< HEAD
-      console.log(error)
-=======
       console.log('error: ' + error);
->>>>>>> b79416b (cron library oimplementation begin)
       return {status: 500, message: "Ops! Something went wrong"};
     }
 
