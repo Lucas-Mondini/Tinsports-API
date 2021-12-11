@@ -5,6 +5,7 @@ import User from "../model/userModel";
 import FormatDate from "../utils/formatDate";
 import FormatStrings from "../utils/formatStrings";
 import DefaultController from "./DefaultController";
+import GameRecurrence from "../services/gameRecurrence";
 
 import moment from "moment-timezone";
 
@@ -15,7 +16,6 @@ export default class GameController extends DefaultController {
    */
   async getAllGames() {
     const games = await Game.find();
-
     return games;
   }
 
@@ -123,7 +123,7 @@ export default class GameController extends DefaultController {
     try {
       const user = await User.findOne({_id: userId});
       const userGames = await Game.find({host_ID: userId});
-      const {name, type, location, description, value, date, hour} = gameInfo;
+      const {name, type, location, description, value, date, hour, recurrence} = gameInfo;
 
       if (!user) return {status: 404, message: "User not found"}
 
@@ -135,7 +135,8 @@ export default class GameController extends DefaultController {
         name, type, location, description,
         value: value ? FormatStrings.formatMoneyToDatabase(String(value)) : null,
         date: FormatDate.dateToDatabase(date, hour),
-        host_ID: userId, hour, finished: false
+        host_ID: userId, hour, finished: false,
+        recurrence: recurrence
       });
 
       const nowDateString = moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
@@ -148,10 +149,14 @@ export default class GameController extends DefaultController {
       }
 
       await game.save();
+      //if it's a recurrence, call the service to the recurrence
+      if(recurrence) {
+        GameRecurrence(game);
+      }
 
       return {game};
     } catch(error) {
-      console.log(error)
+      console.log('error: ' + error);
       return {status: 500, message: "Ops! Something went wrong"};
     }
 

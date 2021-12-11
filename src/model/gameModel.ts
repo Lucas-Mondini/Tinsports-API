@@ -11,6 +11,7 @@ export type GameType = {
   host_ID: string;
   hour: string;
   finished: boolean;
+  recurrence: boolean;
   delete: () => void;
   save: () => void;
 }
@@ -54,6 +55,10 @@ const Game = new mongoose.Schema({
     min: 24
   },
   finished: {
+    type: Boolean,
+    required: true
+  },
+  recurrence: {
     type: Boolean,
     required: true
   }

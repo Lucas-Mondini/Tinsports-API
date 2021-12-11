@@ -4,6 +4,7 @@ export default class Equalizer {
   async equalize()
   {
     await this.equalizeUsers();
+    await this.equalizeGames();
   }
 
   async equalizeUsers()
@@ -16,6 +17,17 @@ export default class Equalizer {
       }
 
       user.save();
+    }
+  }
+  async equalizeGames() 
+  {
+    const games = await User.find();
+
+    for (const game of games) {
+      if(!game.recurrence) {
+        game.recurrence = false;
+      }
+      game.save();
     }
   }
 }
