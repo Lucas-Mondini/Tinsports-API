@@ -12,6 +12,7 @@ export type GameType = {
   hour: string;
   finished: boolean;
   recurrence: boolean;
+  inviteId?: string;
   delete: () => void;
   save: () => void;
 }

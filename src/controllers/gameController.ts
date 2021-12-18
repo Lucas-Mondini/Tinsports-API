@@ -19,10 +19,10 @@ export default class GameController extends DefaultController {
     return games;
   }
 
-   /**
+  /**
    *  Get all games involving the user
    */
-   async getAllGamesOfUser(id: string, friendGames: boolean) {
+  async getAllGamesOfUser(id: string, friendGames: boolean) {
      try{
       let friendsGames, invitedGames, userGames;
 
@@ -49,14 +49,14 @@ export default class GameController extends DefaultController {
     const gamesInfo = [];
 
     for (let game of games) {
-      const {_id, name, location, host_ID, date} = game;
+      const {_id, name, location, host_ID, date, inviteId} = game;
 
       if (await this.finishedGameLogic(game)) continue;
 
       if (!userGame && game.finished) continue;
 
       gamesInfo.push({
-        _id, name, location, host_ID, hour: moment(date).format("HH:mm"), finished: game.finished
+        _id, name, location, host_ID, hour: moment(date).format("HH:mm"), finished: game.finished, inviteId: inviteId ? inviteId : null
       });
     }
 
@@ -107,9 +107,9 @@ export default class GameController extends DefaultController {
     const invitedGames = new Array();
 
     for (const gameList of gameLists) {
-      const games = await Game.find({_id: gameList.game_ID});
+      const game = await Game.findOne({_id: gameList.game_ID});
 
-      invitedGames.push(...games);
+      invitedGames.push({...game._doc, inviteId: gameList._id});
     }
 
     return await this.formatGames(invitedGames);
@@ -215,7 +215,7 @@ export default class GameController extends DefaultController {
   /**
    *  Delete game
    */
-   async finishedGameLogic(game: GameType) {
+  async finishedGameLogic(game: GameType) {
     try{
       const nowDateString = moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm"),
             now = Number(new Date(nowDateString)),
