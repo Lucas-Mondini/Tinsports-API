@@ -11,6 +11,9 @@ gameRoutes.get("/games",         tokenValidation, gameView.index);
 // Register a new game
 gameRoutes.post("/games",        tokenValidation, gameView.save);
 
+// Update game
+gameRoutes.put('/games/:_id',    tokenValidation, gameView.update);
+
 // Get all games involving the user
 gameRoutes.get('/games/home',    tokenValidation, gameView.getHome);
 

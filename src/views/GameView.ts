@@ -38,6 +38,15 @@ export default class GameView extends DefaultView {
     this.treatError(res, response);
   }
 
+  update = async(req: Request, res: Response) =>
+  {
+    const {_id} = req.user;
+
+    const response = await this.gameController.updateGame(req.body, _id);
+
+    this.treatError(res, response);
+  }
+
   get = async(req: Request, res: Response) =>
   {
     const {_id} = req.params;

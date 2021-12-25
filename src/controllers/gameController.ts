@@ -163,6 +163,41 @@ export default class GameController extends DefaultController {
   }
 
   /**
+   * Update Game info
+   */
+  async updateGame(game: GameType, host_ID: string)
+  {
+    try {
+
+      const { _id, name, type, location, date, hour, value, recurrence, description } = game;
+
+      const gameEdit = await Game.findOne({_id});
+
+      if (!game || game.host_ID !== host_ID) {
+        return {status: 401, message: "Game doesn't exist or you are not the host"};
+      }
+
+      let userUpdate = {
+        name: (name) ? name : gameEdit.name,
+        type: (type) ? type : gameEdit.type,
+        location: (location) ? location : gameEdit.location,
+        value: value ? FormatStrings.formatMoneyToDatabase(String(value)) : null,
+        date: (date && hour) ? FormatDate.dateToDatabase(date, hour) : gameEdit.date,
+        recurrence: recurrence,
+        description: (description) ? description : null
+      }
+
+      await gameEdit.updateOne(userUpdate);
+      await gameEdit.save();
+
+      return { message: "Game updated successfully" };
+
+    } catch (e) {
+      return { status: 500, message: "Ops! Something went wrong" };
+    }
+  }
+
+  /**
    * Get game by id
    */
   async getGameById(id: string) {
