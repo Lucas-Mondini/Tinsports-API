@@ -6,7 +6,6 @@ import Game, { GameType }     from "../model/gameModel";
 import gameListController from '../controllers/gameListController';
 const GLC = new gameListController();
 
-
 async function createGame(game: GameType) {
     let new_date: Date = new Date();
     new_date.setDate(new_date.getDate() + 7);
@@ -33,13 +32,16 @@ async function createGame(game: GameType) {
     return {game};
 }
 
-export default function GameRecurrence(game: GameType) {
-    let date = new Date(game.date);
-    let cronDate = `00 ${date.getMinutes().toString()} ${date.getHours().toString()} * * ${date.getDay().toString()}`;
+export default class GameRecurrence {
 
-    let cronJob: CronJob  = new cron.CronJob(cronDate, async ()=>{
-        await createGame(game);
-    }, null, false, 'America/Sao_Paulo')
+        constructor(game: GameType) {
+        let date = new Date(game.date);
+        let cronDate = `00 ${date.getMinutes().toString()} ${date.getHours().toString()} * * ${date.getDay().toString()}`;
 
-    cronJob.start();
+        let cronJob: CronJob  = new cron.CronJob(cronDate, async ()=>{
+            await createGame(game);
+        }, null, false, 'America/Sao_Paulo')
+
+        cronJob.start();
+    }
 }

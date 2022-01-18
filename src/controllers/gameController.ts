@@ -159,8 +159,8 @@ export default class GameController extends DefaultController {
 
       await game.save();
       //if it's a recurrence, call the service to the recurrence
-      if (recurrence) {
-        GameRecurrence(game);
+      if(recurrence) {
+        new GameRecurrence(game);
       }
 
       return {game};
