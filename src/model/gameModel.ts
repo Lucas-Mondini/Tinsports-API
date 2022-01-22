@@ -13,7 +13,9 @@ export type GameType = {
   finished: boolean;
   recurrence: boolean;
   inviteId?: string;
+  deletedAt?: string;
   delete: () => void;
+  updateOne: (data: any) => void;
   save: () => void;
 }
 
@@ -62,6 +64,9 @@ const Game = new mongoose.Schema({
   recurrence: {
     type: Boolean,
     required: true
+  },
+  deletedAt: {
+    type: String,
   }
 });
 

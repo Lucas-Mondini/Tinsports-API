@@ -20,17 +20,23 @@ userRoutes.post('/register/user',                                    usersView.s
 // Delete user
 userRoutes.delete('/register/user',                 tokenValidation, usersView.destroy);
 
-// Update user
+// Update user information
 userRoutes.put('/register/user',                    tokenValidation, usersView.update);
 
-// Update user
+// Update user photo
 userRoutes.put('/register/photo',                   tokenValidation, usersView.photo);
 
-// Update user
+// Update user reputation
 userRoutes.post('/register/user/update-reputation', tokenValidation, usersView.reputation);
 
 // User Login
 userRoutes.post('/login',                                            usersView.login);
+
+// Update user to premium
+userRoutes.post('/premium',                         tokenValidation, usersView.premium);
+
+// Update user to regular user
+userRoutes.post('/not-premium',                     tokenValidation, usersView.notPremium);
 
 export {
   userRoutes

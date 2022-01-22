@@ -51,14 +51,16 @@ export default class FriendListController {
     const userInfoList = new Array();
 
     if (friends.length > 0) {
-      for (let friend of friends) {
+      for (const friend of friends) {
         let user;
 
         if (friend.user_ID === id) {
-          user = await User.findOne({_id: friend.friend_ID});
+          user = await User.findOne({_id: friend.friend_ID, deletedAt: null});
         } else {
-          user = await User.findOne({_id: friend.user_ID});
+          user = await User.findOne({_id: friend.user_ID, deletedAt: null});
         }
+
+        if (!user) continue;
 
         const responseUser = {
           _id: friend._id,
@@ -70,7 +72,7 @@ export default class FriendListController {
           photo: user.photo
         };
 
-        if (user) userInfoList.push(responseUser);
+        userInfoList.push(responseUser);
       }
     }
 

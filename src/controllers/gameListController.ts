@@ -100,7 +100,9 @@ export default class GameListController extends DefaultController
           continue;
         }
 
-        const host = await User.findOne({_id: game.host_ID});
+        const host = await User.findOne({_id: game.host_ID, deletedAt: null});
+
+        if (!host) continue;
 
         if (!gameList.confirmed && game && !game.finished && host) {
           inviteInfo.push({
@@ -114,7 +116,6 @@ export default class GameListController extends DefaultController
             hour: moment(game.date).format("HH:mm")
           });
         };
-
       }
 
       return inviteInfo;

@@ -79,7 +79,7 @@ export default class GameController extends DefaultController {
 
     if (friends.length > 0) {
       for (const friend of friends) {
-        const games = await Game.find({host_ID: friend.friend_ID});
+        const games = await Game.find({host_ID: friend.friend_ID, deletedAt: null});
 
         friendsGames.push(...games);
       }
@@ -87,7 +87,7 @@ export default class GameController extends DefaultController {
 
     if (friends2.length > 0) {
       for (const friend2 of friends2) {
-        const games2 = await Game.find({host_ID: friend2.user_ID});
+        const games2 = await Game.find({host_ID: friend2.user_ID, deletedAt: null});
 
         friendsGames.push(...games2);
       }
@@ -101,7 +101,7 @@ export default class GameController extends DefaultController {
    */
   async getUserGames(id: string, showFinished: boolean = true)
   {
-    const userGames = await Game.find({host_ID: id});
+    const userGames = await Game.find({host_ID: id, deletedAt: null});
 
     return await this.formatGames(userGames, showFinished);
   }
@@ -115,7 +115,7 @@ export default class GameController extends DefaultController {
     const invitedGames = new Array();
 
     for (const gameList of gameLists) {
-      const game = await Game.findOne({_id: gameList.game_ID});
+      const game = await Game.findOne({_id: gameList.game_ID, deletedAt: null});
 
       invitedGames.push({...game._doc, inviteId: gameList._id});
     }
@@ -129,8 +129,8 @@ export default class GameController extends DefaultController {
   async insertNewGame(gameInfo: GameType, userId: string)
   {
     try {
-      const user = await User.findOne({_id: userId});
-      const userGames = await Game.find({host_ID: userId});
+      const user = await User.findOne({_id: userId, deletedAt: null});
+      const userGames = await Game.find({host_ID: userId, deletedAt: null});
       const {name, type, location, description, value, date, hour, recurrence} = gameInfo;
 
       if (!user) return {status: 404, message: "User not found"}
@@ -180,7 +180,7 @@ export default class GameController extends DefaultController {
 
       const { _id, name, type, location, date, hour, value, recurrence, description } = game;
 
-      const gameEdit = await Game.findOne({_id});
+      const gameEdit = await Game.findOne({_id, deletedAt: null});
 
       if (!game || game.host_ID !== host_ID) {
         return {status: 401, message: "Game doesn't exist or you are not the host"};
@@ -213,7 +213,7 @@ export default class GameController extends DefaultController {
   async getGameById(id: string)
   {
     try {
-      let game = await Game.findOne({_id: id});
+      let game = await Game.findOne({_id: id, deletedAt: null});
 
       if (!game || await this.finishedGameLogic(game)) {
         return {status: 404, message: "Game doesn't exist"};
@@ -221,13 +221,19 @@ export default class GameController extends DefaultController {
 
       const gameLists = await GameList.find({game_ID: game._id});
 
-      const host = await User.findOne({_id: game.host_ID});
+      const host = await User.findOne({_id: game.host_ID, deletedAt: null});
+
+      if (!host) return {status: 404, message: "User not found"}
+
       const users = new Array();
 
       for (const gameList of gameLists) {
         if (!gameList.confirmed && game.finished) continue;
 
-        const user = await User.findOne({_id: gameList.user_ID});
+        const user = await User.findOne({_id: gameList.user_ID, deletedAt: null});
+
+        if (!user) continue;
+
         users.push({
           _id: gameList._id,
           user_ID: user._id,
@@ -269,7 +275,8 @@ export default class GameController extends DefaultController {
             now = Number(new Date(nowDateString)),
             gameDateTime = moment(game.date),
             gameDate = Number(new Date(gameDateTime.format("YYYY-MM-DD[T]HH:mm"))),
-            gameDatePlusFiveDays = Number(new Date(gameDateTime.add(5, 'days').format("YYYY-MM-DD[T]HH:mm")));
+            gameDatePlusFiveDays = Number(new Date(gameDateTime.add(5, 'days').format("YYYY-MM-DD[T]HH:mm"))),
+            host = await User.findOne({_id: game.host_ID});
 
       if (Number(new Date(gameDate)) <= now) {
         const confirmedGameLists = await GameList.find({game_ID: game._id, confirmed: true});
@@ -278,8 +285,15 @@ export default class GameController extends DefaultController {
 
         if ((confirmedGameLists.length === 0) || (gameDatePlusFiveDays <= now)) {
           const gameLists = await GameList.find({game_ID: game._id});
-          this.destroyObjectArray(gameLists);
-          await game.delete();
+
+          if (host.premium) {
+            await game.updateOne({deletedAt: moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm")});
+            await game.save();
+          } else {
+            await this.destroyObjectArray(gameLists);
+            await game.delete();
+          }
+
           return true;
         }
       }
@@ -296,16 +310,25 @@ export default class GameController extends DefaultController {
    */
   async deleteGame(_id: string, host_ID: string)
   {
-    try{
-      const game = await Game.findOne({_id});
+    try {
+      const host = await User.findOne({_id: host_ID, deletedAt: null});
+      const game = await Game.findOne({_id, deletedAt: null});
       const gameLists = await GameList.find({game_ID: _id});
+
+      if (!host) return {status: 404, message: "User not found"}
 
       if (!game || game.host_ID !== host_ID) {
         return {status: 401, message: "Game doesn't exist or you are not the host"};
       }
 
-      await game.delete();
-      await this.destroyObjectArray(gameLists);
+      if (host.premium) {
+        await game.updateOne({deletedAt: moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm")});
+
+        await game.save();
+      } else {
+        await game.delete();
+        await this.destroyObjectArray(gameLists);
+      }
 
       return {message: "Game deleted successfully"};
     } catch(error) {

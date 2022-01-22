@@ -13,6 +13,7 @@ export type UserType = {
   newEmail: string;
   photo: string;
   premium: boolean;
+  deletedAt?: string;
 }
 
 const User = new mongoose.Schema({
@@ -44,6 +45,9 @@ const User = new mongoose.Schema({
     type: Boolean,
     required: true
   },
+  deletedAt: {
+    type: String
+  }
 });
 
 export default mongoose.model ("User", User);

@@ -1,10 +1,12 @@
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import moment from "moment-timezone";
+
 import User, { UserType } from "../model/userModel";
 import Game from "../model/gameModel";
 import GameList from "../model/gameListModel";
 import logger from "../utils/logger";
 import Friends, { FriendsType } from "../model/friendsListModel";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import DefaultController from "./DefaultController";
 
 export default class UserController extends DefaultController
@@ -34,9 +36,9 @@ export default class UserController extends DefaultController
       ]);
 
       if (name === '*') {
-        users = await User.find();
+        users = await User.find({deletedAt: null});
       } else {
-        users = await User.find({ name: { $regex: '.*' + name + '.*' } });
+        users = await User.find({name: { $regex: '.*' + name + '.*' }, deletedAt: null});
       }
 
       for (const user of users) {
@@ -60,7 +62,7 @@ export default class UserController extends DefaultController
   async getUserById(_id: String)
   {
     try {
-      const user = await User.findOne({ _id });
+      const user = await User.findOne({_id, deletedAt: null});
 
       if (!user) return { status: 404, message: "User doesn't exist'" };
 
@@ -77,10 +79,10 @@ export default class UserController extends DefaultController
   async createNewUser(newUser: UserType)
   {
     try {
-      let { name, email, pass, confPass } = newUser;
+      const { name, email, pass, confPass } = newUser;
+      const cmpEmail = await User.findOne({email});
       let hash = null;
 
-      const cmpEmail = await User.findOne({ email });
       if (cmpEmail)
         return { status: 400, message: "Email already in use" };
 
@@ -89,7 +91,7 @@ export default class UserController extends DefaultController
       } else return { status: 401, message: "Passwords don't match" };
 
       if (hash) {
-        const user = new User({ name, email, pass: hash, reputation: null, photo: "", premium: false });
+        const user = new User({name, email, pass: hash, reputation: null, photo: "", premium: false, deletedAt: null});
 
         let tokenSecret = String(process.env.TOKEN_SECRET);
 
@@ -115,7 +117,7 @@ export default class UserController extends DefaultController
   async deleteUser(_id: string)
   {
     try {
-      const user = await User.findOne({ _id });
+      const user = await User.findOne({_id, deletedAt: null});
       const games = await Game.find({ host_ID: _id });
       const invitations = await GameList.find({ user_ID: _id });
       const friends = await Friends.find().or([
@@ -132,11 +134,19 @@ export default class UserController extends DefaultController
         gameLists.push(...lists);
       }
 
-      await this.destroyObjectArray(gameLists);
-      await this.destroyObjectArray(games);
-      await this.destroyObjectArray(friends);
+      if (user.premium) {
+        await this.softDeleteArray(games);
 
-      await user.delete();
+        await user.updateOne({deletedAt: moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm")});
+        await user.save();
+      } else {
+        await this.destroyObjectArray(gameLists);
+        await this.destroyObjectArray(games);
+        await this.destroyObjectArray(friends);
+
+        await user.delete();
+      }
+
       return { message: "User deleted successfully" };
     } catch (error) {
       logger.error(error);
@@ -167,15 +177,13 @@ export default class UserController extends DefaultController
 
       let { pass, newName, newEmail, newPass } = userInfo;
 
-      const user = await User.findOne({ _id: userId });
+      const user = await User.findOne({_id: userId, deletedAt: null});
 
-      if (!user)
-        return { status: 404, error: "User doesn't exist" };
+      if (!user) return { status: 404, error: "User doesn't exist" };
 
       let passCompare = await bcrypt.compare(pass, user.pass);
 
-      if (!passCompare)
-        return { status: 401, error: "Email or password is incorrect" };
+      if (!passCompare) return { status: 401, error: "Email or password is incorrect" };
 
       let userUpdate = {
         name: (newName) ? newName : user.name,
@@ -199,11 +207,11 @@ export default class UserController extends DefaultController
   async updatePhoto(_id: string, photoUrl: string)
   {
     try {
-      const user = await User.findOne({_id});
+      const user = await User.findOne({_id, deletedAt: null});
       if (!user) return { status: 404, message: "User not found" };
 
       user.photo = photoUrl;
-      user.save();
+      await user.save();
 
       return { message: "Photo update successfully" };
     } catch (error) {
@@ -218,10 +226,9 @@ export default class UserController extends DefaultController
   async login(email: string, pass: string)
   {
     try {
-      const user = await User.findOne({ email });
+      const user = await User.findOne({email});
 
-      if (!user)
-        return { status: 404, error: "User not found" };
+      if (!user) return { status: 404, error: "User not found" };
 
       if (await bcrypt.compare(pass, user.pass)) {
         let tokenSecret = String(process.env.TOKEN_SECRET);
@@ -229,6 +236,11 @@ export default class UserController extends DefaultController
         const token = jwt.sign({
           _id: user._id
         }, tokenSecret);
+
+        if (user.deletedAt) {
+          await user.updateOne({deletedAt: null});
+          await user.save();
+        }
 
         return {
           _id: user._id,
@@ -248,9 +260,47 @@ export default class UserController extends DefaultController
     }
   }
 
+  async updateUserToPremium(_id: string)
+  {
+    try {
+      const user = await User.findOne({_id, deletedAt: null});
+
+      if (!user) return {status: 404, message: "User not found"}
+
+      if (user.premium) return {status: 403, message: "User is premium already"}
+
+      await user.updateOne({premium: true});
+      await user.save();
+
+      return {message: "User is now premium"}
+    } catch(error) {
+      logger.error(error);
+      return {status: 500, message: "Ops! Something went wrong"}
+    }
+  }
+
+  async updateUserToNotPremium(_id: string)
+  {
+    try {
+      const user = await User.findOne({_id, deletedAt: null});
+
+      if (!user) return {status: 404, message: "User not found"}
+
+      if (!user.premium) return {status: 403, message: "User is not premium already"}
+
+      await user.updateOne({premium: false});
+      await user.save();
+
+      return {message: "User is now not premium"}
+    } catch(error) {
+      logger.error(error);
+      return {status: 500, message: "Ops! Something went wrong"}
+    }
+  }
+
   async updateReputationMethod(paid: boolean, participated: boolean, user_ID: string)
   {
-    const user = await User.findOne({ _id: user_ID });
+    const user = await User.findOne({_id: user_ID, deletedAt: null});
 
     if (!user) return false;
 

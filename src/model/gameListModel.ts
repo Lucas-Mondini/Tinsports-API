@@ -19,7 +19,9 @@ const GameList = new mongoose.Schema({
     max: 24,
     min: 24
   },
-  confirmed: {type: Boolean}
+  confirmed: {
+    type: Boolean
+  }
 });
 
 export default mongoose.model("GameList", GameList);

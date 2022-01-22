@@ -9,17 +9,17 @@ export type FriendsType = {
 
 const Friends = new mongoose.Schema({
     user_ID: {
-        type: String,
-        required: true,
-        max: 24,
-        min: 24
-      },
+      type: String,
+      required: true,
+      max: 24,
+      min: 24
+    },
     friend_ID: {
-        type: String,
-        required: true,
-        max: 24,
-        min: 24
-      },
+      type: String,
+      required: true,
+      max: 24,
+      min: 24
+    },
     confirmed: {
       type: Boolean,
     }

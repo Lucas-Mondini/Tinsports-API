@@ -1,4 +1,5 @@
 import User from "../model/userModel";
+import Game from "../model/gameModel";
 
 export default class Equalizer {
   async equalize()
@@ -16,17 +17,27 @@ export default class Equalizer {
         user.premium = false;
       }
 
+      if (!user.deletedAt) {
+        user.deletedAt = null;
+      }
+
       user.save();
     }
   }
-  async equalizeGames() 
+
+  async equalizeGames()
   {
-    const games = await User.find();
+    const games = await Game.find();
 
     for (const game of games) {
       if(!game.recurrence) {
         game.recurrence = false;
       }
+
+      if (!game.deletedAt) {
+        game.deletedAt = null;
+      }
+
       game.save();
     }
   }
