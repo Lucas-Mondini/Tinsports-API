@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
+import logger from "../utils/logger";
+
 export default function(req: Request, res: Response, next: NextFunction) {
   const token = req.header("auth_token");
 
@@ -15,6 +17,7 @@ export default function(req: Request, res: Response, next: NextFunction) {
     next();
 
   } catch(error) {
+    logger.error(error);
     res.status(400).json({message: "Invalid token"});
   }
 }

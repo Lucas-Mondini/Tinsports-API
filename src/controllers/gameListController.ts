@@ -2,45 +2,48 @@ import GameList from "../model/gameListModel";
 import Game from "../model/gameModel";
 import User from "../model/userModel";
 import DefaultController from "./DefaultController";
+import logger from "../utils/logger";
 
 import moment from "moment-timezone";
 
-export default class GameListController extends DefaultController{
-
+export default class GameListController extends DefaultController
+{
   /**
    * Get all game lists
    */
-  async getAllGameLists() {
-    try{
+  async getAllGameLists()
+  {
+    try {
       const list = await GameList.find();
 
       return list;
     } catch(error){
+      logger.error(error);
       return {status: 500, message: 'Ops! Something went wrong!'}
     }
   }
 
-  //intern utility function
-    /**
+  /**
    * @param GameID
    * @returns list of id from users on the game
    */
+  async getGameUserListByGameId(ID: String)
+  {
+    const userList = new Array();
+    const gameLists = await GameList.find({game_ID: ID});
 
-     async getGameUserListByGameId(ID: String) {
-      const userList = new Array();
-      const gameLists = await GameList.find({game_ID: ID});
-  
-      for (const i of gameLists) 
-        userList.push(i.user_ID);
+    for (const i of gameLists)
+      userList.push(i.user_ID);
 
-      return userList;
-    }
+    return userList;
+  }
 
   /**
    *  Send a game invitation
    */
-   async inviteUser(user_ID: string, game_ID: string){
-    try{
+  async inviteUser(user_ID: string, game_ID: string)
+  {
+    try {
       const checkInvite = await GameList.find({game_ID, user_ID});
 
       if (checkInvite.length > 0) return {status: 403, message: "User already invited"};
@@ -55,6 +58,7 @@ export default class GameListController extends DefaultController{
 
       return gameList;
     } catch(error) {
+      logger.error(error);
       return {status: 500, message: "Ops! Something went wrong"};
     }
   }
@@ -62,7 +66,8 @@ export default class GameListController extends DefaultController{
   /**
    *  Confirms a game invitation
    */
-  async confirmInvitation(_id: string, user_ID: string){
+  async confirmInvitation(_id: string, user_ID: string)
+  {
     try{
       const gameList = await GameList.findOne({_id, user_ID});
 
@@ -73,6 +78,7 @@ export default class GameListController extends DefaultController{
 
       return {gameList};
     } catch(error) {
+      logger.error(error);
       return {status: 500, message: "Ops! Something went wrong"};
     }
   }
@@ -80,7 +86,8 @@ export default class GameListController extends DefaultController{
   /**
    *  Get all invitations of the user
    */
-  async getInvitations(userId: string) {
+  async getInvitations(userId: string)
+  {
     try{
       const inviteInfo = new Array();
       const gameLists = await GameList.find({user_ID: userId});
@@ -112,6 +119,7 @@ export default class GameListController extends DefaultController{
 
       return inviteInfo;
     } catch(error: any) {
+      logger.error(error);
       return {status: 500, message: "Ops! Something went wrong"};
     }
   }
@@ -119,7 +127,8 @@ export default class GameListController extends DefaultController{
   /**
    *  Delete game list
    */
-  async deleteGameInvitation(_id: string) {
+  async deleteGameInvitation(_id: string)
+  {
     try{
       const gameList = await GameList.findOne({_id});
 
@@ -129,17 +138,17 @@ export default class GameListController extends DefaultController{
 
       return {message: "GameList deleted successfully"};
     } catch (error) {
+      logger.error(error);
       return {status: 500, message: "Ops! Something went wrong"};
     }
   }
 
-  //BELOW HERE ONLY SYSTEM WILL USE
-  //PLEASE COMENT WHERE THE FUNCTION WILL BE USED
   /**
    * create a clone of a gamelist with new game ID and without confirmation
-   * @param NewGame_ID 
+   * @param NewGame_ID
    */
-  async cloneGameListToNewGame(OldGame_ID: String, NewGame_ID: String) {
+  async cloneGameListToNewGame(OldGame_ID: String, NewGame_ID: String)
+  {
     const newList = Array();
     let userList = await this.getGameUserListByGameId(OldGame_ID);
 
@@ -152,9 +161,7 @@ export default class GameListController extends DefaultController{
       await list.save();
       newList.push(list)
     }
-    
+
     return newList;
   }
-
-
 }

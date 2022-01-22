@@ -1,18 +1,21 @@
 import Friends, { FriendsType } from "../model/friendsListModel";
 import User from "../model/userModel";
 import GameList, { GameListType } from "../model/gameListModel";
+import logger from "../utils/logger";
 
 export default class FriendListController {
 
   /**
    *  Get all friends relations
    */
-  async getAllFriendsRelations() {
-    try{
+  async getAllFriendsRelations()
+  {
+    try {
       let friend = await Friends.find();
 
       return friend;
-    } catch(error){
+    } catch(error) {
+      logger.error(error);
       return {status: 500, message: "Ops! Something went wrong"};
     }
   }
@@ -20,9 +23,9 @@ export default class FriendListController {
   /**
    * Save new friend relation
    */
-  async sendFriendInvitation(user_ID: string, friend_ID: string){
-
-    try{
+  async sendFriendInvitation(user_ID: string, friend_ID: string)
+  {
+    try {
       const hasFriendRelation = await Friends.find().or([
         {user_ID, friend_ID},
         {friend_ID: user_ID, user_ID: friend_ID}
@@ -37,13 +40,14 @@ export default class FriendListController {
       await friends.save();
 
       return friends;
-    } catch(error){
+    } catch(error) {
+      logger.error(error);
       return {status: 500, message: "Ops! Something went wrong"};
     }
-
   }
 
-  async friendListFormat(friends: FriendsType[], id: string) {
+  async friendListFormat(friends: FriendsType[], id: string)
+  {
     const userInfoList = new Array();
 
     if (friends.length > 0) {
@@ -56,7 +60,7 @@ export default class FriendListController {
           user = await User.findOne({_id: friend.user_ID});
         }
 
-        const responseUser  = {
+        const responseUser = {
           _id: friend._id,
           user_ID: user._id,
           name: user.name,
@@ -76,8 +80,9 @@ export default class FriendListController {
   /**
    *  Get friend and friend invitations by user id, or friend of friends
    */
-  async getFriendById(id: string, friendFriends: boolean) {
-    try{
+  async getFriendById(id: string, friendFriends: boolean)
+  {
+    try {
       let friendInvites, friends;
 
       const friendsList = !friendFriends ? await Friends.find().or([
@@ -93,7 +98,8 @@ export default class FriendListController {
       } else friends = await this.friendListFormat(friendsList, id);
 
       return {friends, friendInvites};
-    } catch(error){
+    } catch(error) {
+      logger.error(error);
       return {status: 500, message: "Ops! Something went wrong"};
     }
   }
@@ -120,6 +126,7 @@ export default class FriendListController {
 
       return this.friendListFormat(inviteFriends, id);
     } catch (error) {
+      logger.error(error);
       return {status: 500, message: "Ops! Something went wrong"};
     }
   }
@@ -127,8 +134,9 @@ export default class FriendListController {
   /**
    *  Confirm friend invitation
    */
-   async confirmFriendInvitation(_id: string) {
-    try{
+   async confirmFriendInvitation(_id: string)
+   {
+    try {
       const friendInvitation = await Friends.findOne({_id});
 
       if (!friendInvitation) return {status: 404, message: "Friend request doesn't exist"};
@@ -137,7 +145,8 @@ export default class FriendListController {
       friendInvitation.save();
 
       return friendInvitation;
-    } catch(error){
+    } catch(error) {
+      logger.error(error);
       return {status: 500, message: "Ops! Something went wrong"};
     }
   }
@@ -145,17 +154,18 @@ export default class FriendListController {
   /**
    *  Delete friend relation
    */
-  async deleteFriend(_id: string) {
-    try{
+  async deleteFriend(_id: string)
+  {
+    try {
         const friend = await Friends.findOne({_id});
 
-        if(!friend)
-            return {status: 500, message : "Friend doesn't exist"};
+        if (!friend) return {status: 500, message : "Friend doesn't exist"};
 
         await friend.delete();
         return {message:"Friends deleted successfully"};
-        } catch (error) {
-          return {status: 500, message: "Ops! Something went wrong"};
-        }
+    } catch(error) {
+      logger.error(error);
+      return {status: 500, message: "Ops! Something went wrong"};
     }
+  }
 }

@@ -3,6 +3,7 @@ import GameList from "../model/gameListModel";
 import Friends from "../model/friendsListModel";
 import User from "../model/userModel";
 import FormatDate from "../utils/formatDate";
+import logger from "../utils/logger";
 import FormatStrings from "../utils/formatStrings";
 import DefaultController from "./DefaultController";
 import GameRecurrence from "../services/gameRecurrence";
@@ -14,7 +15,8 @@ export default class GameController extends DefaultController {
   /**
    * Debug - Get all users
    */
-  async getAllGames() {
+  async getAllGames()
+  {
     const games = await Game.find();
     return games;
   }
@@ -22,7 +24,8 @@ export default class GameController extends DefaultController {
   /**
    *  Get all games involving the user
    */
-  async getAllGamesOfUser(id: string, friendGames: boolean) {
+  async getAllGamesOfUser(id: string, friendGames: boolean)
+  {
      try{
       let friendsGames, invitedGames, userGames;
 
@@ -38,6 +41,7 @@ export default class GameController extends DefaultController {
 
       return response;
     } catch(error: any) {
+      logger.error(error);
       return {status: 500, message: error.message};
     }
   }
@@ -45,7 +49,8 @@ export default class GameController extends DefaultController {
   /**
    *  Format games
    */
-  private async formatGames(games: Array<GameType>, userGame: boolean = false) {
+  private async formatGames(games: Array<GameType>, userGame: boolean = false)
+  {
     const gamesInfo = [];
 
     for (let game of games) {
@@ -66,7 +71,8 @@ export default class GameController extends DefaultController {
   /**
    *  Get friends games
    */
-  async getFriendsGames(id: string) {
+  async getFriendsGames(id: string)
+  {
     const friends = await Friends.find({user_ID: id, confirmed: true});
     const friends2 = await Friends.find({friend_ID: id, confirmed: true});
     const friendsGames = new Array();
@@ -93,7 +99,8 @@ export default class GameController extends DefaultController {
   /**
    * Get user games
    */
-  async getUserGames(id: string, showFinished: boolean = true) {
+  async getUserGames(id: string, showFinished: boolean = true)
+  {
     const userGames = await Game.find({host_ID: id});
 
     return await this.formatGames(userGames, showFinished);
@@ -102,7 +109,8 @@ export default class GameController extends DefaultController {
   /**
    * Get invited Games
    */
-  async getInvitedGames(id: string) {
+  async getInvitedGames(id: string)
+  {
     const gameLists = await GameList.find({user_ID: id, confirmed: false});
     const invitedGames = new Array();
 
@@ -118,8 +126,8 @@ export default class GameController extends DefaultController {
   /**
    * Save new game
    */
-  async insertNewGame(gameInfo: GameType, userId: string) {
-
+  async insertNewGame(gameInfo: GameType, userId: string)
+  {
     try {
       const user = await User.findOne({_id: userId});
       const userGames = await Game.find({host_ID: userId});
@@ -140,7 +148,8 @@ export default class GameController extends DefaultController {
       });
 
       const nowDateString = moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
-      const gameDateString = moment(game.date).tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
+      const gameDateString = moment(game.date).format("YYYY-MM-DD[T]HH:mm");
+
       const now = Number(new Date(nowDateString));
       const gameDate = Number(new Date(gameDateString));
 
@@ -150,13 +159,13 @@ export default class GameController extends DefaultController {
 
       await game.save();
       //if it's a recurrence, call the service to the recurrence
-      if(recurrence) {
+      if (recurrence) {
         GameRecurrence(game);
       }
 
       return {game};
     } catch(error) {
-      console.log('error: ' + error);
+      logger.error(error);
       return {status: 500, message: "Ops! Something went wrong"};
     }
 
@@ -192,7 +201,8 @@ export default class GameController extends DefaultController {
 
       return { message: "Game updated successfully" };
 
-    } catch (e) {
+    } catch (error) {
+      logger.error(error);
       return { status: 500, message: "Ops! Something went wrong" };
     }
   }
@@ -200,7 +210,8 @@ export default class GameController extends DefaultController {
   /**
    * Get game by id
    */
-  async getGameById(id: string) {
+  async getGameById(id: string)
+  {
     try {
       let game = await Game.findOne({_id: id});
 
@@ -243,6 +254,7 @@ export default class GameController extends DefaultController {
 
       return gameInfo;
     } catch(error: any) {
+      logger.error(error);
       return {status: 500, message: error.message};
     }
   }
@@ -250,11 +262,12 @@ export default class GameController extends DefaultController {
   /**
    *  Delete game
    */
-  async finishedGameLogic(game: GameType) {
+  async finishedGameLogic(game: GameType)
+  {
     try{
       const nowDateString = moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm"),
             now = Number(new Date(nowDateString)),
-            gameDateTime = moment(game.date).tz("America/Sao_Paulo"),
+            gameDateTime = moment(game.date),
             gameDate = Number(new Date(gameDateTime.format("YYYY-MM-DD[T]HH:mm"))),
             gameDatePlusFiveDays = Number(new Date(gameDateTime.add(5, 'days').format("YYYY-MM-DD[T]HH:mm")));
 
@@ -273,6 +286,7 @@ export default class GameController extends DefaultController {
 
       return false;
     } catch(error) {
+      logger.error(error);
       return {status: 500, message: "Ops! Something went wrong"};
     }
   }
@@ -280,7 +294,8 @@ export default class GameController extends DefaultController {
   /**
    *  Delete game
    */
-  async deleteGame(_id: string, host_ID: string) {
+  async deleteGame(_id: string, host_ID: string)
+  {
     try{
       const game = await Game.findOne({_id});
       const gameLists = await GameList.find({game_ID: _id});
@@ -294,6 +309,7 @@ export default class GameController extends DefaultController {
 
       return {message: "Game deleted successfully"};
     } catch(error) {
+      logger.error(error);
       return {status: 500, message: "Ops! Something went wrong"};
     }
   }

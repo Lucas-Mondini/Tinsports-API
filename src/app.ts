@@ -8,6 +8,7 @@ import { userRoutes } from './routes/UserRoutes';
 import { gameRoutes } from './routes/GameRoutes';
 import { gameListRoutes } from './routes/GameListRoutes';
 import Equalizer from './utils/Equalizer';
+import logger from './utils/logger';
 
 const corsOptions = {
   origin: "*",
@@ -27,9 +28,9 @@ mongo.connect();
 
 new Equalizer()
       .equalize()
-      .then(() => {console.log("Equalization Success")})
-      .catch((err) => {console.log("Error", err)});
+      .then(() => {logger.info("Equalization Success")})
+      .catch((err) => {logger.error(err)});
 
 app.listen(process.env.PORT, () => {
-  console.log('Server Started');
+  logger.info('Server Started');
 });

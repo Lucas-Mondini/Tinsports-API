@@ -1,16 +1,19 @@
 import User, { UserType } from "../model/userModel";
 import Game from "../model/gameModel";
 import GameList from "../model/gameListModel";
+import logger from "../utils/logger";
 import Friends, { FriendsType } from "../model/friendsListModel";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import DefaultController from "./DefaultController";
 
-export default class UserController extends DefaultController {
+export default class UserController extends DefaultController
+{
   /**
    *  Method to get all users from database
    */
-  async getAllUsers() {
+  async getAllUsers()
+  {
     const users = await User.find();
 
     return users;
@@ -19,7 +22,8 @@ export default class UserController extends DefaultController {
   /**
    *  Get all users by name
    */
-  async getUserByName(name: String, id: string) {
+  async getUserByName(name: String, id: string)
+  {
     try {
       const availableUsers = new Array();
       let users;
@@ -44,7 +48,8 @@ export default class UserController extends DefaultController {
       }
 
       return availableUsers;
-    } catch (e) {
+    } catch (error) {
+      logger.error(error);
       return { status: 500, message: "Ops! Something went wrong" };
     }
   }
@@ -52,14 +57,16 @@ export default class UserController extends DefaultController {
   /**
    *  Get all users by id
    */
-  async getUserById(_id: String) {
+  async getUserById(_id: String)
+  {
     try {
       const user = await User.findOne({ _id });
 
       if (!user) return { status: 404, message: "User doesn't exist'" };
 
       return user;
-    } catch (e) {
+    } catch (error) {
+      logger.error(error);
       return { status: 500, message: "Ops! Something went wrong" };
     }
   }
@@ -67,7 +74,8 @@ export default class UserController extends DefaultController {
   /**
    * Save a new user
    */
-  async createNewUser(newUser: UserType) {
+  async createNewUser(newUser: UserType)
+  {
     try {
       let { name, email, pass, confPass } = newUser;
       let hash = null;
@@ -95,7 +103,8 @@ export default class UserController extends DefaultController {
           name: user.name, _id: user._id, email: user.email, auth_token: token, reputation: user.reputation
         };
       }
-    } catch (e) {
+    } catch (error) {
+      logger.error(error);
       return { status: 500, message: "Ops! Something went wrong" };
     }
   }
@@ -103,7 +112,8 @@ export default class UserController extends DefaultController {
   /**
    *  Delete user, his games, game lists and friends
    */
-  async deleteUser(_id: string) {
+  async deleteUser(_id: string)
+  {
     try {
       const user = await User.findOne({ _id });
       const games = await Game.find({ host_ID: _id });
@@ -128,12 +138,14 @@ export default class UserController extends DefaultController {
 
       await user.delete();
       return { message: "User deleted successfully" };
-    } catch (e) {
+    } catch (error) {
+      logger.error(error);
       return { status: 500, message: "Ops! Something went wrong" };
     }
   }
 
-  async updateReputation(paid: boolean, participated: boolean, user_ID: string) {
+  async updateReputation(paid: boolean, participated: boolean, user_ID: string)
+  {
     try {
       const user = await this.updateReputationMethod(paid, participated, user_ID);
 
@@ -141,6 +153,7 @@ export default class UserController extends DefaultController {
 
       return user;
     } catch (error) {
+      logger.error(error);
       return { status: 500, message: "Ops! Something went wrong" };
     }
   }
@@ -148,7 +161,8 @@ export default class UserController extends DefaultController {
   /**
    *  Update user info
    */
-  async updateUser(userInfo: UserType, userId: string) {
+  async updateUser(userInfo: UserType, userId: string)
+  {
     try {
 
       let { pass, newName, newEmail, newPass } = userInfo;
@@ -175,13 +189,15 @@ export default class UserController extends DefaultController {
 
       return { message: "User update successfully" };
 
-    } catch (e) {
+    } catch (error) {
+      logger.error(error);
       return { status: 500, message: "Ops! Something went wrong" };
     }
 
   }
 
-  async updatePhoto(_id: string, photoUrl: string) {
+  async updatePhoto(_id: string, photoUrl: string)
+  {
     try {
       const user = await User.findOne({_id});
       if (!user) return { status: 404, message: "User not found" };
@@ -191,6 +207,7 @@ export default class UserController extends DefaultController {
 
       return { message: "Photo update successfully" };
     } catch (error) {
+      logger.error(error);
       return { status: 500, message: "Ops! Something went wrong" };
     }
   }
@@ -198,7 +215,8 @@ export default class UserController extends DefaultController {
   /**
    * Method that makes the login
    */
-  async login(email: string, pass: string) {
+  async login(email: string, pass: string)
+  {
     try {
       const user = await User.findOne({ email });
 
@@ -224,12 +242,14 @@ export default class UserController extends DefaultController {
       }
 
       return { status: 401, message: "Email or password is incorrect" };
-    } catch (e) {
+    } catch (error) {
+      logger.error(error);
       return { status: 500, message: "Ops! Something went wrong" };
     }
   }
 
-  async updateReputationMethod(paid: boolean, participated: boolean, user_ID: string) {
+  async updateReputationMethod(paid: boolean, participated: boolean, user_ID: string)
+  {
     const user = await User.findOne({ _id: user_ID });
 
     if (!user) return false;
