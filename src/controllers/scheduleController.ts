@@ -13,11 +13,8 @@ export default class ScheduleController extends DefaultController {
 
     constructor() {
         super();
+        this.updateStack();
     }
-
-   async init() {
-       this.updateStack();
-   }
 
     async updateStack() {
         try {
