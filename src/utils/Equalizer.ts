@@ -1,11 +1,13 @@
 import User from "../model/userModel";
 import Game from "../model/gameModel";
+import ScheduleController from "../controllers/scheduleController";
 
 export default class Equalizer {
   async equalize()
   {
     await this.equalizeUsers();
     await this.equalizeGames();
+    await ScheduleController.loadAllSchedules();
   }
 
   async equalizeUsers()

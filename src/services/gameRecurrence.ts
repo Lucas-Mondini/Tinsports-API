@@ -1,9 +1,9 @@
-import cron, { CronJob } from 'cron'
-import { Number } from 'mongoose';
-
 import Game, { GameType }     from "../model/gameModel";
 
 import gameListController from '../controllers/gameListController';
+import ScheduleController from '../controllers/scheduleController';
+
+
 const GLC = new gameListController();
 
 async function createGame(game: GameType) {
@@ -34,14 +34,14 @@ async function createGame(game: GameType) {
 
 export default class GameRecurrence {
 
-        constructor(game: GameType) {
-        let date = new Date(game.date);
-        let cronDate = `00 ${date.getMinutes().toString()} ${date.getHours().toString()} * * ${date.getDay().toString()}`;
+    constructor(game: GameType) {
+        this.createNewGameRecurrence(game);
+    }
 
-        let cronJob: CronJob  = new cron.CronJob(cronDate, async ()=>{
+    async createNewGameRecurrence(game: GameType) {
+        const sc = ScheduleController.getInstance();
+        (await sc).createWeeklySchedule(async ()=>{
             await createGame(game);
-        }, null, false, 'America/Sao_Paulo')
-
-        cronJob.start();
+        }, new Date(game.date));
     }
 }
