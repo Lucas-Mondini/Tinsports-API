@@ -1,86 +1,75 @@
-import Schedule from "../model/scheduleModel";
 import DefaultController from "./DefaultController";
 import cron, { CronJob } from 'cron'
 
-import moment from "moment-timezone";
-import { ObjectId } from "mongoose";
+import logger from "../utils/logger";
 
+/**
+ * Create a new generic Schedule
+ */
 export default class ScheduleController extends DefaultController {
 
     private static instance: ScheduleController;
 
-    scheduleStack = new Array(Object);
-    lastID = -1;
+    callback: Function;
+    scheduleStack = new Array();
 
     constructor() {
         super();
     }
 
+    /**
+     * Function that create a ScheduleController class instance
+     * @returns ScheduleController
+     */
     public static async getInstance() {
-        if(!ScheduleController.instance) {
-            ScheduleController.instance = new ScheduleController();
-            await ScheduleController.instance.updateStack();
-        }
-        return ScheduleController.instance;
-    }
-
-    static async loadAllSchedules() {
-        const schedules = await Schedule.find();
-        const nowDate = moment().tz('America/Sao_Paulo').toDate();
-        const sc = ScheduleController.getInstance();
-        for (let s of schedules) {
-            //se o tempo da proxima execução ja passou
-            if (s.nextDate < nowDate) {
-                await Schedule.findById(s._id, (err: any, f: any)=>{
-                    //executa a função que deveria ter sido executada
-                    f.func();
-                })
-            }
-            //carrega na memoria todas as recorrencias
-            (await sc).createWeeklySchedule(s.what, s.when, s._id);
-        }
-    }
-
-    private async updateStack() {
         try {
-            this.scheduleStack = await Schedule.find();
-            this.lastID = Schedule.find().sort({ createdAt: -1 }).limit(0).incrementID;
-        } catch(error){
-            console.log(error);
+            if (!ScheduleController.instance) {
+                ScheduleController.instance = new ScheduleController();
+            }
+
+            await ScheduleController.instance.clearStack();
+            return ScheduleController.instance;
+        } catch (error) {
+            logger.error(error)
         }
     }
 
-   private async addToStack(what: Function, when: String, nextExecution: Date) {
-        this.lastID++;
-        let id = this.lastID;
-        let schedule =  new Schedule({id, what, when, nextExecution});
-        schedule.save();
-        this.scheduleStack.push(Schedule);
-   }
+    /**
+     * Clear cron job stack
+     * @returns void
+     */
+    async clearStack() {
+        this.scheduleStack = new Array();
+    }
 
+    /**
+     * Create a weekly schedule for the object that execute the callback function
+     * @param when Date of job execution
+     */
+    async createWeeklySchedule(when: string) {
+        try {
+            let newId;
 
+            let cronJob: CronJob  = new cron.CronJob(when, async ()=>{
+                newId = await this.callback();
+            }, null, false, 'America/Sao_Paulo');
 
-   /**
-    * 
-    * @param what uma função de callback que tem que ser passada da maneira na qual vai ser executada (ja com os parametros); ex:
-    * async ()=> { await foo(bar) }
-    * @param when data
-    */
-   async createWeeklySchedule(what: Function, when: Date, id: String | null = null) {
-        let cronDate = `00 ${when.getMinutes().toString()} ${when.getHours().toString()} * * ${when.getDay().toString()}`;
+            cronJob.start();
 
-        let cronJob: CronJob  = new cron.CronJob(cronDate, async ()=>{
-            await what();
-        }, null, false, 'America/Sao_Paulo');
+            const schedule = {when, nextExecution: cronJob.nextDate().toDate()};
 
-        cronJob.start();
-        if(!id)
-            this.addToStack(what, cronDate, cronJob.nextDate().toDate());
-        else {
-            let schedule = await Schedule.findById(id);
-            //se existe um id atualiza a proxima execução
-            schedule.nextExecution = cronJob.nextDate().toDate();
-            schedule.save();
-        } 
+            this.scheduleStack.push(schedule);
+        } catch(error) {
+            logger.error(error);
+        }
+    }
+
+    /**
+     * Sets callback function to scheduled job
+     * @param callback Function executed by the job
+     */
+    setCallBack(callback: Function)
+    {
+        this.callback = callback
     }
 }

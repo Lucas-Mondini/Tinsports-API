@@ -1,4 +1,5 @@
 import winston from "winston";
+import moment from "moment-timezone";
 
 const logger = winston.createLogger({
   format: winston.format.combine(
@@ -8,7 +9,7 @@ const logger = winston.createLogger({
     winston.format.printf(info => `${info.level}: ${info.label}: ${[`[${info.timestamp}]`]}: ${info.message}`)
   ),
   transports: [
-    new winston.transports.File({dirname: "log", filename: "info.log", level: "info"})
+    new winston.transports.File({dirname: "log", filename: `info-${moment().tz("America/Sao_Paulo").format("YYYY-MM-DD")}.log`, level: "info"})
   ]
 });
 
