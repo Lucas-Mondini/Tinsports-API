@@ -13,12 +13,18 @@ import moment from "moment-timezone";
 export default class GameController extends DefaultController {
 
   /**
-   * Debug - Get all users
+   * Debug - Get all games
    */
   async getAllGames()
   {
-    const games = await Game.find();
-    return games;
+    try {
+      const games = await Game.find();
+
+      return games;
+    } catch (error) {
+      logger.error(error);
+      return {status: 500, message: "Ops! Something went wrong"};
+    }
   }
 
   /**
@@ -144,12 +150,12 @@ export default class GameController extends DefaultController {
         value: value ? FormatStrings.formatMoneyToDatabase(String(value)) : null,
         date: FormatDate.dateToDatabase(date, hour),
         host_ID: userId, hour, finished: false,
-        recurrence: recurrence
+        recurrence: recurrence,
+        deletedAt: null
       });
 
       const nowDateString = moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
       const gameDateString = moment(game.date).format("YYYY-MM-DD[T]HH:mm");
-
       const now = Number(new Date(nowDateString));
       const gameDate = Number(new Date(gameDateString));
 
@@ -159,8 +165,8 @@ export default class GameController extends DefaultController {
 
       await game.save();
       //if it's a recurrence, call the service to the recurrence
-      if (recurrence) {
-        GameRecurrence(game);
+      if(recurrence) {
+        await new GameRecurrence().createNewGameRecurrence(game);
       }
 
       return {game};
@@ -263,6 +269,27 @@ export default class GameController extends DefaultController {
       logger.error(error);
       return {status: 500, message: error.message};
     }
+  }
+
+  /**
+   * Create a copy of the game
+   * @param game game to be copied
+   */
+  async copyGame(game: GameType) {
+    const new_date: Date = new Date();
+    new_date.setDate(new_date.getDate() + 7);
+    game.date = moment(new_date).tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
+
+    const {name, type, location, description, value, date, host_ID, recurrence} = game;
+    game = new Game({
+      name, type, description, location, value, date,
+      host_ID, finished: false, recurrence, deletedAt: null
+    });
+
+    await game.save();
+    logger.info('Game created');
+
+    return game;
   }
 
   /**

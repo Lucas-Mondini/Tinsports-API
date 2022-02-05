@@ -24,21 +24,6 @@ export default class GameListController extends DefaultController
   }
 
   /**
-   * @param GameID
-   * @returns list of id from users on the game
-   */
-  async getGameUserListByGameId(ID: String)
-  {
-    const userList = new Array();
-    const gameLists = await GameList.find({game_ID: ID});
-
-    for (const i of gameLists)
-      userList.push(i.user_ID);
-
-    return userList;
-  }
-
-  /**
    *  Send a game invitation
    */
   async inviteUser(user_ID: string, game_ID: string)
@@ -146,19 +131,21 @@ export default class GameListController extends DefaultController
 
   /**
    * create a clone of a gamelist with new game ID and without confirmation
-   * @param NewGame_ID
+   * @param OldGame_ID - Original game Id
+   * @param NewGame_ID - Game copy id
    */
   async cloneGameListToNewGame(OldGame_ID: String, NewGame_ID: String)
   {
-    const newList = Array();
-    let userList = await this.getGameUserListByGameId(OldGame_ID);
+    const newList = Array(),
+          gameLists = await GameList.find({game_ID: OldGame_ID});
 
-    for (const user_ID of userList) {
+    for (const gameList of gameLists) {
       const list = new GameList({
         game_ID: NewGame_ID,
-        user_ID: user_ID,
+        user_ID: gameList.user_ID,
         confirmed: false
-      })
+      });
+
       await list.save();
       newList.push(list)
     }

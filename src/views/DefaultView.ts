@@ -5,9 +5,7 @@ export default class DefaultView {
   {
     if (response.status) {
       return res.status(response.status).json(response);
-    }
-
-    else {
+    } else {
       return res.status(200).json(response);
     }
   }
