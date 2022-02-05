@@ -36,7 +36,7 @@ export default class Scheduler
   {
     let cronJob: CronJob  = new cron.CronJob("0 1 * * *", async ()=>{
       logger.info("Executed")
-      await ScheduleController.getInstance();
+      await ScheduleController.getInstance(true);
       await this.retrieve();
     }, null, false, 'America/Sao_Paulo');
 

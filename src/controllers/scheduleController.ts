@@ -1,33 +1,29 @@
-import DefaultController from "./DefaultController";
-import cron, { CronJob } from 'cron'
+import cron, { CronJob } from 'cron';
 
 import logger from "../utils/logger";
 
 /**
  * Create a new generic Schedule
  */
-export default class ScheduleController extends DefaultController {
+export default class ScheduleController {
 
     private static instance: ScheduleController;
 
     callback: Function;
     scheduleStack = new Array();
 
-    constructor() {
-        super();
-    }
-
     /**
      * Function that create a ScheduleController class instance
-     * @returns ScheduleController
+     * @param clearStack determines whether will schedules stack be cleared
+     * @return ScheduleController | void
      */
-    public static async getInstance() {
+    public static async getInstance(clearStack: boolean = false): Promise<ScheduleController| void> {
         try {
             if (!ScheduleController.instance) {
                 ScheduleController.instance = new ScheduleController();
             }
 
-            await ScheduleController.instance.clearStack();
+            if (clearStack) await ScheduleController.instance.clearStack();
             return ScheduleController.instance;
         } catch (error) {
             logger.error(error)
@@ -36,7 +32,7 @@ export default class ScheduleController extends DefaultController {
 
     /**
      * Clear cron job stack
-     * @returns void
+     * @return void
      */
     async clearStack() {
         this.scheduleStack = new Array();
