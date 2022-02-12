@@ -8,6 +8,8 @@ import GameList from "../model/gameListModel";
 import logger from "../utils/logger";
 import Friends, { FriendsType } from "../model/friendsListModel";
 import DefaultController from "./DefaultController";
+import MailTemplateConfigurator from "../utils/MailTemplateConfigurator";
+import Mailer from "../services/mailer";
 
 export default class UserController extends DefaultController
 {
@@ -98,6 +100,14 @@ export default class UserController extends DefaultController
         const token = jwt.sign({
           _id: user._id
         }, tokenSecret);
+
+        const mail = new MailTemplateConfigurator({name, code: '00'}, 'confirmUser');
+        const data = await mail.renderTemplate();
+
+        new Mailer({
+          to: user.email, subject: "Confirmação da sua conta", html: data
+        }).sendMail();
+
 
         await user.save();
 
