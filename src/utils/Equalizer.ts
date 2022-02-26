@@ -17,6 +17,14 @@ export default class Equalizer {
         user.premium = false;
       }
 
+      if (!user.confirmed) {
+        user.confirmed = false;
+      }
+
+      if (!user.code) {
+        user.code = null;
+      }
+
       if (!user.deletedAt) {
         user.deletedAt = null;
       }

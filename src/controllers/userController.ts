@@ -59,7 +59,7 @@ export default class UserController extends DefaultController
   }
 
   /**
-   *  Get all users by id
+   *  Get user by id
    */
   async getUserById(_id: String)
   {
@@ -68,7 +68,10 @@ export default class UserController extends DefaultController
 
       if (!user) return { status: 404, message: "User doesn't exist'" };
 
-      return user;
+      return {
+        name: user.name, _id: user._id, email: user.email,
+        reputation: user.reputation, premium: user.premium, confirmed: user.confirmed
+      }
     } catch (error) {
       logger.error(error);
       return { status: 500, message: "Ops! Something went wrong" };
@@ -93,26 +96,22 @@ export default class UserController extends DefaultController
       } else return { status: 401, message: "Passwords don't match" };
 
       if (hash) {
-        const user = new User({name, email, pass: hash, reputation: null, photo: "", premium: false, deletedAt: null});
+        const user = new User({
+          name, email, pass: hash, reputation: null, photo: "",
+          premium: false, code: null, confirmed: false, deletedAt: null});
 
         let tokenSecret = String(process.env.TOKEN_SECRET);
 
         const token = jwt.sign({
-          _id: user._id
+          _id: user._id, confirmed: user.confirmed,
+          email, premium: user.premium
         }, tokenSecret);
 
-        const mail = new MailTemplateConfigurator({name, code: '00'}, 'confirmUser');
-        const data = await mail.renderTemplate();
-
-        new Mailer({
-          to: user.email, subject: "Confirmação da sua conta", html: data
-        }).sendMail();
-
-
-        await user.save();
+        await this.sendCode(user, "Confirme sua conta", 'confirmUser');
 
         return {
-          name: user.name, _id: user._id, email: user.email, auth_token: token, reputation: user.reputation
+          name: user.name, _id: user._id, email: user.email, auth_token: token,
+          reputation: user.reputation, premium: user.premium, confirmed: user.confirmed
         };
       }
     } catch (error) {
@@ -214,6 +213,11 @@ export default class UserController extends DefaultController
 
   }
 
+  /**
+   * Update user photo
+   * @param _id user id
+   * @param photoUrl photo url
+   */
   async updatePhoto(_id: string, photoUrl: string)
   {
     try {
@@ -231,6 +235,43 @@ export default class UserController extends DefaultController
   }
 
   /**
+   *  Update user password
+   */
+   async updatePass(email: string, pass: string)
+   {
+     try {
+       const user = await User.findOne({email});
+
+       if (!user) return { status: 404, error: "User doesn't exist" };
+
+       const cripto = await bcrypt.hash(pass, 10);
+       await user.updateOne({pass: cripto, last_pass: user.password});
+       await user.save();
+
+       let tokenSecret = String(process.env.TOKEN_SECRET);
+
+        const token = jwt.sign({
+          _id: user._id,
+          email, premium: user.premium
+        }, tokenSecret);
+
+       return {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        auth_token: token,
+        reputation: user.reputation,
+        photo: user.photo,
+        premium: user.premium
+      };
+
+     } catch (error) {
+       logger.error(error);
+       return { status: 500, message: "Ops! Something went wrong" };
+     }
+   }
+
+  /**
    * Method that makes the login
    */
   async login(email: string, pass: string)
@@ -244,7 +285,8 @@ export default class UserController extends DefaultController
         let tokenSecret = String(process.env.TOKEN_SECRET);
 
         const token = jwt.sign({
-          _id: user._id
+          _id: user._id,
+          email, premium: user.premium
         }, tokenSecret);
 
         if (user.deletedAt) {
@@ -270,6 +312,98 @@ export default class UserController extends DefaultController
     }
   }
 
+  /**
+   * Send recovery password email
+   * @param email user e-mail
+   */
+  async forgotPassword(email: string)
+  {
+    try {
+      const user = await User.findOne({email});
+
+      if (!user) return { status: 404, error: "User not found" };
+
+      this.sendCode(user, "Redefinir senha", 'forgotPass');
+
+      return { message: "Code sent successfully"}
+    } catch (error) {
+      logger.error(error);
+      return { status: 500, message: "Ops! Something went wrong" }
+    }
+  }
+
+  /**
+   * Send recovery password email
+   * @param _id user id
+   */
+  async resendCode(_id: string)
+  {
+    try {
+      const user = await User.findOne({_id});
+
+      if (!user) return { status: 404, error: "User not found" };
+
+      this.sendCode(user, "Confirme sua conta", 'confirmUser');
+
+      return { message: "Code sent successfully"}
+    } catch (error) {
+      logger.error(error);
+      return { status: 500, message: "Ops! Something went wrong" }
+    }
+  }
+
+  /**
+   * Send user confirmation code
+   * @param user
+   */
+  async sendCode(user: UserType, subject: string, template: string)
+  {
+    const randomCode = Math.round((Math.random() * 100000)),
+          mail = new MailTemplateConfigurator({name: user.name, code: randomCode}, template),
+          data = await mail.renderTemplate(),
+          criptoCode = await bcrypt.hash(String(randomCode), 10)
+
+    await user.updateOne({code: criptoCode, confirmed: false});
+    await user.save();
+
+    new Mailer({
+      to: user.email, subject, html: data
+    }).sendMail();
+  }
+
+  /**
+   * Verify user code
+   * @param code
+   * @param _id user id
+   */
+  async checkUserCode(code: number, _id: string, email?: string)
+  {
+    try {
+      const identity = _id ? {_id} : {email}
+      const user = await User.findOne(identity);
+
+      if (!user) return { status: 404, error: "User not found" };
+      if (!user.code) return { status: 401, error: "No code found"}
+      if (await bcrypt.compare(code, user.code)) {
+        if (!user.confirmed) {
+          await user.updateOne({confirmed: true, code: null});
+          await user.save();
+        }
+
+        return { message: "Code confirmed" };
+      }
+
+      return {status: 401, error: "Code is incorrect"}
+    } catch (error) {
+      logger.error(error);
+      return { status: 500, message: "Ops! Something went wrong"}
+    }
+  }
+
+  /**
+   * Update user ro premium
+   * @param _id user id
+   */
   async updateUserToPremium(_id: string)
   {
     try {
@@ -289,6 +423,11 @@ export default class UserController extends DefaultController
     }
   }
 
+  /**
+   * Update usar to not premium
+   * @param _id user id
+   * @return
+   */
   async updateUserToNotPremium(_id: string)
   {
     try {
@@ -308,6 +447,12 @@ export default class UserController extends DefaultController
     }
   }
 
+  /**
+   * Update user reputation
+   * @param paid if user has paid for the game
+   * @param participated if user participated of the game
+   * @param user_ID user id
+   */
   async updateReputationMethod(paid: boolean, participated: boolean, user_ID: string)
   {
     const user = await User.findOne({_id: user_ID, deletedAt: null});

@@ -3,7 +3,7 @@ import ejs from 'ejs';
 
 interface Data {
   name?: string;
-  code?: string;
+  code?: number;
 }
 
 interface MailTemplate {

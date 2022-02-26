@@ -89,6 +89,43 @@ export default class UserView extends DefaultView {
     this.treatError(res, response);
   }
 
+  changePass = async(req: Request, res: Response) =>
+  {
+    const {email, pass} = req.body;
+
+    const response = await this.userController.updatePass(email, pass);
+
+    this.treatError(res, response);
+  }
+
+  code = async(req: Request, res: Response) =>
+  {
+    const _id = req.user ? req.user._id : null;
+    const {code, email} = req.body;
+
+    const response = await this.userController.checkUserCode(code, _id, email);
+
+    this.treatError(res, response);
+  }
+
+  resendCode = async(req: Request, res: Response) =>
+  {
+    const {_id} = req.user;
+
+    const response = await this.userController.resendCode(_id);
+
+    this.treatError(res, response);
+  }
+
+  forgotPass = async(req: Request, res: Response) =>
+  {
+    const {email} = req.body;
+
+    const response = await this.userController.forgotPassword(email);
+
+    this.treatError(res, response);
+  }
+
   premium = async(req: Request, res: Response) =>
   {
     const {_id} = req.user;

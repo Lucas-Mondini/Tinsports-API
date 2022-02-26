@@ -32,6 +32,21 @@ userRoutes.post('/register/user/update-reputation', tokenValidation, usersView.r
 // User Login
 userRoutes.post('/login',                                            usersView.login);
 
+// Change user password
+userRoutes.put('/change-pass',                                       usersView.changePass);
+
+// Confirm user code
+userRoutes.post('/code',                            tokenValidation, usersView.code);
+
+// Confirm user code to change pass
+userRoutes.post('/change-pass-code',                                 usersView.code);
+
+// Confirm user code
+userRoutes.post('/resend-code',                     tokenValidation, usersView.resendCode);
+
+// Confirm user code
+userRoutes.post('/forgot-pass',                                      usersView.forgotPass);
+
 // Update user to premium
 userRoutes.post('/premium',                         tokenValidation, usersView.premium);
 
