@@ -33,13 +33,10 @@ userRoutes.post('/register/user/update-reputation', tokenValidation, usersView.r
 userRoutes.post('/login',                                            usersView.login);
 
 // Change user password
-userRoutes.put('/change-pass',                                       usersView.changePass);
+userRoutes.put('/change-pass',                      tokenValidation, usersView.changePass);
 
 // Confirm user code
-userRoutes.post('/code',                            tokenValidation, usersView.code);
-
-// Confirm user code to change pass
-userRoutes.post('/change-pass-code',                                 usersView.code);
+userRoutes.post('/code',                                             usersView.code);
 
 // Confirm user code
 userRoutes.post('/resend-code',                     tokenValidation, usersView.resendCode);

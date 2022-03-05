@@ -69,7 +69,7 @@ export default class UserController extends DefaultController
       if (!user) return { status: 404, message: "User doesn't exist'" };
 
       return {
-        name: user.name, _id: user._id, email: user.email,
+        name: user.name, _id: user._id, email: user.email, photo: user.photo,
         reputation: user.reputation, premium: user.premium, confirmed: user.confirmed
       }
     } catch (error) {
@@ -110,7 +110,7 @@ export default class UserController extends DefaultController
         await this.sendCode(user, "Confirme sua conta", 'confirmUser');
 
         return {
-          name: user.name, _id: user._id, email: user.email, auth_token: token,
+          name: user.name, _id: user._id, email: user.email, auth_token: token, photo: user.photo,
           reputation: user.reputation, premium: user.premium, confirmed: user.confirmed
         };
       }
@@ -390,7 +390,16 @@ export default class UserController extends DefaultController
           await user.save();
         }
 
-        return { message: "Code confirmed" };
+        let tokenSecret = String(process.env.TOKEN_SECRET);
+
+        const token = jwt.sign({
+          _id: user._id,
+          email, premium: user.premium
+        }, tokenSecret, {
+          expiresIn: 60 * 4 * 1000
+        });
+
+        return token;
       }
 
       return {status: 401, error: "Code is incorrect"}

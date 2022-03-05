@@ -150,7 +150,7 @@ export default class GameController extends DefaultController {
         value: value ? FormatStrings.formatMoneyToDatabase(String(value)) : null,
         date: FormatDate.dateToDatabase(date, hour),
         host_ID: userId, hour, finished: false,
-        recurrence: recurrence,
+        recurrence: recurrence ? recurrence : false,
         deletedAt: null
       });
 
