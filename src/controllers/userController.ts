@@ -237,10 +237,10 @@ export default class UserController extends DefaultController
   /**
    *  Update user password
    */
-   async updatePass(email: string, pass: string)
+   async updatePass(_id: string, pass: string)
    {
      try {
-       const user = await User.findOne({email});
+       const user = await User.findOne({_id});
 
        if (!user) return { status: 404, error: "User doesn't exist" };
 
@@ -252,7 +252,7 @@ export default class UserController extends DefaultController
 
         const token = jwt.sign({
           _id: user._id,
-          email, premium: user.premium
+         email: user.email, premium: user.premium
         }, tokenSecret);
 
        return {
