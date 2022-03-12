@@ -7,6 +7,7 @@ import logger from "../utils/logger";
 import FormatStrings from "../utils/formatStrings";
 import DefaultController from "./DefaultController";
 import GameRecurrence from "../services/gameRecurrence";
+import GameNotification from "../services/gameNotification";
 
 import moment from "moment-timezone";
 
@@ -19,6 +20,10 @@ export default class GameController extends DefaultController {
   {
     try {
       const games = await Game.find();
+
+      for (const game of games) {
+        await this.finishedGameLogic(game);
+      }
 
       return games;
     } catch (error) {
@@ -67,7 +72,8 @@ export default class GameController extends DefaultController {
       if (!userGame && game.finished) continue;
 
       gamesInfo.push({
-        _id, name, location, host_ID, hour: moment(date).format("HH:mm"), finished: game.finished, inviteId: inviteId ? inviteId : null
+        _id, name, location, host_ID, hour: moment(date).tz("America/Sao_Paulo").format("HH:mm"),
+        finished: game.finished, inviteId: inviteId ? inviteId : null
       });
     }
 
@@ -155,7 +161,7 @@ export default class GameController extends DefaultController {
       });
 
       const nowDateString = moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
-      const gameDateString = moment(game.date).format("YYYY-MM-DD[T]HH:mm");
+      const gameDateString = moment(game.date).tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
       const now = Number(new Date(nowDateString));
       const gameDate = Number(new Date(gameDateString));
 
@@ -165,9 +171,11 @@ export default class GameController extends DefaultController {
 
       await game.save();
       //if it's a recurrence, call the service to the recurrence
-      if(recurrence) {
+      if (recurrence) {
         await new GameRecurrence().createNewGameRecurrence(game);
       }
+
+      await new GameNotification().createNewGameNotification(game);
 
       return {game};
     } catch(error) {
@@ -205,8 +213,9 @@ export default class GameController extends DefaultController {
       await gameEdit.updateOne(userUpdate);
       await gameEdit.save();
 
-      return { message: "Game updated successfully" };
+      await new GameNotification().createNewGameNotification(gameEdit);
 
+      return { message: "Game updated successfully" };
     } catch (error) {
       logger.error(error);
       return { status: 500, message: "Ops! Something went wrong" };
@@ -260,7 +269,7 @@ export default class GameController extends DefaultController {
         name, type, location, description,
         value: FormatStrings.formatMoneyToUser(value),
         date: moment(date).format("DD/MM/YYYY"),
-        hour: moment(date).format("HH:mm"),
+        hour: moment(date).tz("America/Sao_Paulo").format("HH:mm"),
         gameList: users,
       }
 
@@ -278,7 +287,7 @@ export default class GameController extends DefaultController {
   async copyGame(game: GameType) {
     const new_date: Date = new Date();
     new_date.setDate(new_date.getDate() + 7);
-    game.date = moment(new_date).tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
+    game.date = moment(new_date).format("YYYY-MM-DD[T]HH:mm");
 
     const {name, type, location, description, value, date, host_ID, recurrence} = game;
     game = new Game({
@@ -287,7 +296,8 @@ export default class GameController extends DefaultController {
     });
 
     await game.save();
-    logger.info('Game created');
+
+    await new GameNotification().createNewGameNotification(game);
 
     return game;
   }
@@ -300,12 +310,12 @@ export default class GameController extends DefaultController {
     try{
       const nowDateString = moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm"),
             now = Number(new Date(nowDateString)),
-            gameDateTime = moment(game.date),
+            gameDateTime = moment(game.date).tz("America/Sao_Paulo"),
             gameDate = Number(new Date(gameDateTime.format("YYYY-MM-DD[T]HH:mm"))),
             gameDatePlusFiveDays = Number(new Date(gameDateTime.add(5, 'days').format("YYYY-MM-DD[T]HH:mm"))),
             host = await User.findOne({_id: game.host_ID});
 
-      if (Number(new Date(gameDate)) <= now) {
+      if (gameDate <= now) {
         const confirmedGameLists = await GameList.find({game_ID: game._id, confirmed: true});
         game.finished = true;
         await game.save();
@@ -314,7 +324,7 @@ export default class GameController extends DefaultController {
           const gameLists = await GameList.find({game_ID: game._id});
 
           if (host.premium) {
-            await game.updateOne({deletedAt: moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm")});
+            await game.updateOne({deletedAt: moment().format("YYYY-MM-DD[T]HH:mm")});
             await game.save();
           } else {
             await this.destroyObjectArray(gameLists);
@@ -349,7 +359,7 @@ export default class GameController extends DefaultController {
       }
 
       if (host.premium) {
-        await game.updateOne({deletedAt: moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm")});
+        await game.updateOne({deletedAt: moment().format("YYYY-MM-DD[T]HH:mm")});
 
         await game.save();
       } else {

@@ -22,7 +22,7 @@ export default class GameRecurrence {
 
         if (scheduleController) {
             scheduleController.setCallBack(() => this.cloneGameInfo(game, oldId));
-            await scheduleController.createWeeklySchedule(cronDate);
+            await scheduleController.createSchedule(cronDate);
         }
     }
 

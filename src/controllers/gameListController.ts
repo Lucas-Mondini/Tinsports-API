@@ -1,8 +1,10 @@
 import GameList from "../model/gameListModel";
-import Game from "../model/gameModel";
+import Game, { GameType } from "../model/gameModel";
 import User from "../model/userModel";
 import DefaultController from "./DefaultController";
 import logger from "../utils/logger";
+import Mailer from "../services/mailer";
+import MailTemplateConfigurator from "../utils/MailTemplateConfigurator";
 
 import moment from "moment-timezone";
 
@@ -33,13 +35,38 @@ export default class GameListController extends DefaultController
 
       if (checkInvite.length > 0) return {status: 403, message: "User already invited"};
 
+      const game = await Game.findOne({_id: game_ID});
+
+      if (!game) return {status: 404, message: "Game doesn't exist!"};
+
+      const host = await User.findOne({_id: game.host_ID});
+
+      if (!host) return {status: 404, message: "Host doesn't exist!"};
+
+      const user = await User.findOne({_id: user_ID});
+
+      if (!user) return {status: 404, message: "User doesn't exist!"};
+
       const gameList = new GameList({
         game_ID,
         user_ID,
         confirmed: false
       });
 
-      gameList.save();
+      await gameList.save();
+
+      const gameInfo = {
+              host: host.name,
+              event: game.name, eventLocation: game.location,
+              eventDate: moment(game.date).format("DD/MM/YYYY"),
+              eventHour: moment(game.date).tz("America/Sao_Paulo").format("HH:mm")
+            },
+            mail = new MailTemplateConfigurator({...gameInfo, name: user.name}, "inviteUser"),
+            data = await mail.renderTemplate();
+
+      new Mailer({
+        to: user.email, subject: `${host.name} está convidando você para um jogo!`, html: data
+      }).sendMail();
 
       return gameList;
     } catch(error) {
@@ -151,5 +178,34 @@ export default class GameListController extends DefaultController
     }
 
     return newList;
+  }
+
+  /**
+   * Notify users that the game is about to start
+   * @param game
+   */
+  async notifyInvitedUsers(game: GameType)
+  {
+    const gameLists = await GameList.find({game_ID: game._id, confirmed: true});
+    const host = await User.findOne({_id: game.host_ID});
+    const gameInfo = {
+      host: host.name,
+      event: game.name, eventLocation: game.location,
+      eventDate: moment(game.date).format("DD/MM/YYYY"),
+      eventHour: moment(game.date).tz("America/Sao_Paulo").format("HH:mm")
+    }
+
+    for (const gameList of gameLists) {
+      const user = await User.findOne({_id: gameList.user_ID});
+
+      if (!user) continue;
+
+      const mail = new MailTemplateConfigurator({...gameInfo, name: user.name}, "notifyInvitedUser"),
+            data = await mail.renderTemplate();
+
+      new Mailer({
+        to: user.email, subject: `O jogo de ${host.name} está prestes a começar!`, html: data
+      }).sendMail();
+    }
   }
 }

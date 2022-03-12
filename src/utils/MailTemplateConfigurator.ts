@@ -3,7 +3,13 @@ import ejs from 'ejs';
 
 interface Data {
   name?: string;
+  friend?: string;
   code?: number;
+  host?: string;
+  event?: string;
+  eventLocation?: string;
+  eventDate?: string;
+  eventHour?: string;
 }
 
 interface MailTemplate {

@@ -42,7 +42,7 @@ export default class ScheduleController {
      * Create a weekly schedule for the object that execute the callback function
      * @param when Date of job execution
      */
-    async createWeeklySchedule(when: string) {
+    async createSchedule(when: string) {
         try {
             let newId;
 

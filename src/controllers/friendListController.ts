@@ -2,6 +2,8 @@ import Friends, { FriendsType } from "../model/friendsListModel";
 import User from "../model/userModel";
 import GameList, { GameListType } from "../model/gameListModel";
 import logger from "../utils/logger";
+import Mailer from "../services/mailer";
+import MailTemplateConfigurator from "../utils/MailTemplateConfigurator";
 
 export default class FriendListController {
 
@@ -33,11 +35,23 @@ export default class FriendListController {
 
       if (hasFriendRelation.length > 0) return {status: 401, message: "Already friends"};
 
+      const friend = await User.findOne({_id: friend_ID});
+      const user = await User.findOne({_id: user_ID});
+
+      if (!user || !friend) return {status: 404, message: "User doesn't exist!"};
+
       let friends = new Friends({
         user_ID, friend_ID, confirmed: false
       });
 
       await friends.save();
+
+      const mail = new MailTemplateConfigurator({friend: user.name, name: friend.name}, "inviteUser"),
+            data = await mail.renderTemplate();
+
+      new Mailer({
+        to: friend.email, subject: `${user.name} quer ser seu amigo!`, html: data
+      }).sendMail();
 
       return friends;
     } catch(error) {

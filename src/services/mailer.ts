@@ -66,6 +66,7 @@ export default class Mailer implements MailerType {
 
     sender.sendMail(this.mailInfo, (error) => {
       if (error) {
+        console.log(error)
         logger.error(error);
       }
     });
