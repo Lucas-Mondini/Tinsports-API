@@ -101,10 +101,9 @@ export default class UserView extends DefaultView {
 
   code = async(req: Request, res: Response) =>
   {
-    const _id = req.user ? req.user._id : null;
     const {code, email} = req.body;
 
-    const response = await this.userController.checkUserCode(code, _id, email);
+    const response = await this.userController.checkUserCode(code, email);
 
     this.treatError(res, response);
   }

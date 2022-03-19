@@ -364,7 +364,7 @@ export default class UserController extends DefaultController
           data = await mail.renderTemplate(),
           criptoCode = await bcrypt.hash(String(randomCode), 10)
 
-    await user.updateOne({code: criptoCode, confirmed: false});
+    await user.updateOne({code: criptoCode});
     await user.save();
 
     new Mailer({
@@ -377,11 +377,10 @@ export default class UserController extends DefaultController
    * @param code
    * @param _id user id
    */
-  async checkUserCode(code: number, _id: string, email?: string)
+  async checkUserCode(code: number, email: string)
   {
     try {
-      const identity = _id ? {_id} : {email}
-      const user = await User.findOne(identity);
+      const user = await User.findOne({email});
 
       if (!user) return { status: 404, error: "User not found" };
       if (!user.code) return { status: 401, error: "No code found"}
@@ -395,7 +394,7 @@ export default class UserController extends DefaultController
 
         const token = jwt.sign({
           _id: user._id,
-          email, premium: user.premium
+          email: user.email, premium: user.premium
         }, tokenSecret, {
           expiresIn: 60 * 4 * 1000
         });

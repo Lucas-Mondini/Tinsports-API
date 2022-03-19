@@ -36,28 +36,18 @@ export default class Mailer implements MailerType {
     this.connection = {
       host: process.env.MAIL_HOST || "",
       service: process.env.MAIL_HOST || "",
-      secure: true,
+      secure: false,
       port: Number(process.env.MAIL_PORT) || 0,
       auth: {
-        user: process.env.MAIL || "",
+        user: process.env.E_MAIL || "",
         pass: process.env.MAIL_PASS || ""
       }
     }
   }
 
-  private createTransport(): boolean | Transporter
-  {
-    if (!this.validateMailConfig()) {
-      return false;
-    }
-
-    return nodeMailer
-            .createTransport(this.connection);
-  }
-
   public sendMail(): boolean | void
   {
-    const sender = this.createTransport();
+    const sender = nodeMailer.createTransport(this.connection)
 
     if (typeof sender != 'object') {
       logger.error("Mail couldn't be sent");
@@ -69,27 +59,5 @@ export default class Mailer implements MailerType {
         logger.error(error);
       }
     });
-  }
-
-  private validateMailConfig(): boolean
-  {
-    let errorCount = 0;
-    const connectionInfo: any = this.connection;
-
-    for (const config in connectionInfo) {
-      if (
-        connectionInfo[config] == "" || connectionInfo[config] == 0 ||
-        connectionInfo[config]['user'] == "" || connectionInfo[config]['pass'] == ""
-      ) {
-        errorCount++
-      }
-    }
-
-    if (errorCount > 0) {
-      logger.error("Mail is not configured properly");
-      return false;
-    }
-
-    return true;
   }
 }
