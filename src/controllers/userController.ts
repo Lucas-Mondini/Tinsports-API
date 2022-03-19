@@ -301,7 +301,8 @@ export default class UserController extends DefaultController
           auth_token: token,
           reputation: user.reputation,
           photo: user.photo,
-          premium: user.premium
+          premium: user.premium,
+          confirmed: user.confirmed
         };
       }
 

@@ -129,6 +129,8 @@ export default class GameController extends DefaultController {
     for (const gameList of gameLists) {
       const game = await Game.findOne({_id: gameList.game_ID, deletedAt: null});
 
+      if (!game) continue;
+
       invitedGames.push({...game._doc, inviteId: gameList._id});
     }
 
