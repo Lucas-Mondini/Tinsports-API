@@ -45,7 +45,7 @@ export default class FriendsView extends DefaultView {
     const {friend_ID} = req.body;
     const user_ID = req.user._id;
 
-    const response = await await this.friendsController.sendFriendInvitation(user_ID, friend_ID);
+    const response = await this.friendsController.sendFriendInvitation(user_ID, friend_ID);
 
     this.treatError(res, response);
   }

@@ -47,7 +47,7 @@ export default class ScheduleController {
             let newId;
 
             let cronJob: CronJob  = new cron.CronJob(when, async ()=>{
-                newId = await this.callback();
+                await this.callback();
             }, null, false, 'America/Sao_Paulo');
 
             cronJob.start();

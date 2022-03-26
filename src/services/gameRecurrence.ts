@@ -34,6 +34,6 @@ export default class GameRecurrence {
     async cloneGameInfo(game: GameType, oldId: string)
     {
         game = await this.gameController.copyGame(game);
-        await await this.gameListController.cloneGameListToNewGame(oldId, game._id);
+        await this.gameListController.cloneGameListToNewGame(oldId, game._id);
     }
 }

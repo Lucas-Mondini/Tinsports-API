@@ -59,7 +59,7 @@ export default class GameListController extends DefaultController
               host: host.name,
               event: game.name, eventLocation: game.location,
               eventDate: moment(game.date).format("DD/MM/YYYY"),
-              eventHour: moment(game.date).tz("America/Sao_Paulo").format("HH:mm")
+              eventHour: moment(game.date).format("HH:mm")
             },
             mail = new MailTemplateConfigurator({...gameInfo, name: user.name}, "inviteUser"),
             data = await mail.renderTemplate();
@@ -182,17 +182,21 @@ export default class GameListController extends DefaultController
 
   /**
    * Notify users that the game is about to start
-   * @param game
+   * @param gameId
    */
-  async notifyInvitedUsers(game: GameType)
+  async notifyInvitedUsers(gameId: string)
   {
+    const game = await Game.findOne({_id: gameId});
+
+    if (!game) return {status: 404, message: "Game doesn't exist'"};
+
     const gameLists = await GameList.find({game_ID: game._id, confirmed: true});
     const host = await User.findOne({_id: game.host_ID});
     const gameInfo = {
       host: host.name,
       event: game.name, eventLocation: game.location,
       eventDate: moment(game.date).format("DD/MM/YYYY"),
-      eventHour: moment(game.date).tz("America/Sao_Paulo").format("HH:mm")
+      eventHour: moment(game.date).format("HH:mm")
     }
 
     for (const gameList of gameLists) {

@@ -20,10 +20,14 @@ export default class GameController extends DefaultController {
   {
     try {
       const games = await Game.find();
+      const gameLists = await GameList.find();
 
-      for (const game of games) {
+      /* for (const game of games) {
         await this.finishedGameLogic(game);
       }
+
+      await this.destroyObjectArray(games);
+      await this.destroyObjectArray(gameLists); */
 
       return games;
     } catch (error) {
@@ -72,7 +76,7 @@ export default class GameController extends DefaultController {
       if (!userGame && game.finished) continue;
 
       gamesInfo.push({
-        _id, name, location, host_ID, hour: moment(date).tz("America/Sao_Paulo").format("HH:mm"),
+        _id, name, location, host_ID, hour: moment(date).format("HH:mm"),
         finished: game.finished, inviteId: inviteId ? inviteId : null
       });
     }
@@ -163,7 +167,7 @@ export default class GameController extends DefaultController {
       });
 
       const nowDateString = moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
-      const gameDateString = moment(game.date).tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
+      const gameDateString = moment(game.date).format("YYYY-MM-DD[T]HH:mm");
       const now = Number(new Date(nowDateString));
       const gameDate = Number(new Date(gameDateString));
 
@@ -271,7 +275,7 @@ export default class GameController extends DefaultController {
         name, type, location, description,
         value: FormatStrings.formatMoneyToUser(value),
         date: moment(date).format("DD/MM/YYYY"),
-        hour: moment(date).tz("America/Sao_Paulo").format("HH:mm"),
+        hour: moment(date).format("HH:mm"),
         gameList: users,
       }
 
@@ -312,7 +316,7 @@ export default class GameController extends DefaultController {
     try{
       const nowDateString = moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm"),
             now = Number(new Date(nowDateString)),
-            gameDateTime = moment(game.date).tz("America/Sao_Paulo"),
+            gameDateTime = moment(game.date),
             gameDate = Number(new Date(gameDateTime.format("YYYY-MM-DD[T]HH:mm"))),
             gameDatePlusFiveDays = Number(new Date(gameDateTime.add(5, 'days').format("YYYY-MM-DD[T]HH:mm"))),
             host = await User.findOne({_id: game.host_ID});
