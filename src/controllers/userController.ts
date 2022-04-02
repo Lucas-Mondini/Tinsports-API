@@ -40,6 +40,8 @@ export default class UserController extends DefaultController
       if (name === '*') {
         users = await User.find({deletedAt: null});
       } else {
+        name = name.replace(/[^\w\s]/g, "");
+
         users = await User.find({name: { $regex: '.*' + name + '.*' }, deletedAt: null});
       }
 
@@ -85,6 +87,9 @@ export default class UserController extends DefaultController
   {
     try {
       const { name, email, pass, confPass } = newUser;
+
+      if (this.checkForSpecialCharacters(name)) return { status: 406, error: "Special characters not allowed" };
+
       const cmpEmail = await User.findOne({email});
       let hash = null;
 
@@ -186,7 +191,10 @@ export default class UserController extends DefaultController
 
       let { pass, newName, newEmail, newPass } = userInfo;
 
+      if (this.checkForSpecialCharacters(newName)) return { status: 406, error: "Special characters not allowed" };
+
       const user = await User.findOne({_id: userId, deletedAt: null});
+
 
       if (!user) return { status: 404, error: "User doesn't exist" };
 
@@ -479,5 +487,21 @@ export default class UserController extends DefaultController
     user.save();
 
     return user;
+  }
+
+  /**
+   * Check if string have special characters
+   * @param string
+   * @return boolean
+   */
+  checkForSpecialCharacters(string: string)
+  {
+    const regex = /[^\w\s]/g;
+
+    if (regex.test(string)) {
+      return true;
+    }
+
+    return false;
   }
 }
