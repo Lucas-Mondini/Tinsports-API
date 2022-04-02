@@ -8,8 +8,6 @@ import logger from "../utils/logger";
 export default class ScheduleController {
 
     private static instance: ScheduleController;
-
-    callback: Function;
     scheduleStack = new Array();
 
     /**
@@ -41,31 +39,23 @@ export default class ScheduleController {
     /**
      * Create a weekly schedule for the object that execute the callback function
      * @param when Date of job execution
+     * @param callback Function that will be executed
      */
-    async createSchedule(when: string) {
+    async createSchedule(when: string, callback: Function) {
         try {
             let newId;
 
             let cronJob: CronJob  = new cron.CronJob(when, async ()=>{
-                await this.callback();
+                await callback();
             }, null, false, 'America/Sao_Paulo');
 
             cronJob.start();
 
             const schedule = {when, nextExecution: cronJob.nextDate().toDate()};
 
-            this.scheduleStack.push(schedule);
+            this.scheduleStack.push({schedule, callback});
         } catch(error) {
             logger.error(error);
         }
-    }
-
-    /**
-     * Sets callback function to scheduled job
-     * @param callback Function executed by the job
-     */
-    setCallBack(callback: Function)
-    {
-        this.callback = callback
     }
 }

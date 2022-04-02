@@ -21,8 +21,7 @@ export default class GameRecurrence {
         const oldId = game._id;
 
         if (scheduleController) {
-            scheduleController.setCallBack(() => this.cloneGameInfo(game, oldId));
-            await scheduleController.createSchedule(cronDate);
+            await scheduleController.createSchedule(cronDate, async () => this.cloneGameInfo(game, oldId));
         }
     }
 
