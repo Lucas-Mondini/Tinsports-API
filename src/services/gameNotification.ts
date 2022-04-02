@@ -25,8 +25,7 @@ export default class GameNotification {
         const cronDate = `00 ${gameDate.getMinutes().toString()} ${gameDate.getHours().toString()} * * ${gameDate.getDay().toString()}`;
 
         if (scheduleController) {
-            scheduleController.setCallBack(() => this.notify(game._id));
-            await scheduleController.createSchedule(cronDate);
+            await scheduleController.createSchedule(cronDate, async () => this.notify(game._id));
         }
     }
 
