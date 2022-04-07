@@ -112,6 +112,8 @@ export default class UserController extends DefaultController
           email, premium: user.premium
         }, tokenSecret);
 
+        await user.save();
+
         await this.sendCode(user, "Confirme sua conta", 'confirmUser');
 
         return {
@@ -332,7 +334,7 @@ export default class UserController extends DefaultController
 
       if (!user) return { status: 404, error: "User not found" };
 
-      this.sendCode(user, "Redefinir senha", 'forgotPass');
+      await this.sendCode(user, "Redefinir senha", 'forgotPass');
 
       return { message: "Code sent successfully"}
     } catch (error) {
@@ -352,7 +354,7 @@ export default class UserController extends DefaultController
 
       if (!user) return { status: 404, error: "User not found" };
 
-      this.sendCode(user, "Confirme sua conta", 'confirmUser');
+      await this.sendCode(user, "Confirme sua conta", 'confirmUser');
 
       return { message: "Code sent successfully"}
     } catch (error) {
