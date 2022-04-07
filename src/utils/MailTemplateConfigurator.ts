@@ -29,6 +29,6 @@ export default class MailTemplateConfigurator implements MailTemplate
 
   async renderTemplate(): Promise<string>
   {
-    return await ejs.renderFile(`${__dirname}/../mail/${this.template}.ejs`, this.data);
+    return await ejs.renderFile(`${__dirname}/../../mail/${this.template}.ejs`, this.data);
   }
 }

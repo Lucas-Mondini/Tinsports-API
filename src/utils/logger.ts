@@ -6,10 +6,10 @@ const logger = winston.createLogger({
     winston.format.errors({stacked: true}),
     winston.format.timestamp({format: 'DD-MM-YYYY HH:mm:ss'}),
     winston.format.label({label: `Label🏷️`}),
-    winston.format.printf(info => `${info.level}: ${info.label}: ${[`[${info.timestamp}]`]}: ${info.message}`)
+    winston.format.printf(info => `${info.level}: ${info.label}: ${[`[${moment().tz("America/Sao_Paulo").format("YYYY-MM-DD HH:mm:ss")}]`]}: ${info.message}`)
   ),
   transports: [
-    new winston.transports.File({dirname: "log", filename: `info-${moment().tz("America/Sao_Paulo").format("YYYY-MM-DD")}.log`, level: "info"})
+    new winston.transports.File({dirname: "log", filename: `server.log`, level: "info"})
   ]
 });
 
