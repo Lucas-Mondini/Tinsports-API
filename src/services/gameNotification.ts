@@ -3,7 +3,6 @@ import moment from "moment-timezone";
 import { GameType }     from "../model/gameModel";
 import GameListController from '../controllers/gameListController';
 import ScheduleController from '../controllers/scheduleController';
-import logger from "../utils/logger";
 
 /**
  * Create a new game notification schedule
@@ -33,7 +32,6 @@ export default class GameNotification {
      */
     async notify(id: string)
     {
-        logger.info("Executou")
         await this.gameListController.notifyInvitedUsers(id);
     }
 }
