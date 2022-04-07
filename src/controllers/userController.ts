@@ -40,7 +40,7 @@ export default class UserController extends DefaultController
       if (name === '*') {
         users = await User.find({deletedAt: null});
       } else {
-        name = name.replace(/[^\w\s]/g, "");
+        name = name.replace(/([&\/\\#^,+()$~%\.'":*?<>\[\]{}!¹@²³£¢¬_`\-=§+ªº´;°|])/g, "");
 
         users = await User.find({name: { $regex: '.*' + name + '.*' }, deletedAt: null});
       }
@@ -498,7 +498,7 @@ export default class UserController extends DefaultController
    */
   checkForSpecialCharacters(string: string)
   {
-    const regex = /[^\w\s]/g;
+    const regex = /([&\/\\#^,+()$~%\.'":*?<>\[\]{}!¹@²³£¢¬_`\-=§+ªº´;°|])/g;
 
     if (regex.test(string)) {
       return true;
