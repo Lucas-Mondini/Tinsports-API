@@ -5,8 +5,10 @@ import GameListView from '../views/GameListView';
 const gameListRoutes = Router();
 const gameListController = new GameListView();
 
-// Get all game lists
-gameListRoutes.get('/game-list',                      tokenValidation,  gameListController.index);
+if (process.env.ENVIRONMENT !== 'production') {
+  // Get all game lists
+  gameListRoutes.get('/game-list',                      tokenValidation,  gameListController.index);
+}
 
 // Get user invitations
 gameListRoutes.get('/game-list/invite',               tokenValidation,  gameListController.get);

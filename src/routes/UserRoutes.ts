@@ -5,8 +5,10 @@ import UserView from '../views/UserView';
 const userRoutes = Router();
 const usersView = new UserView();
 
-// Get all users, for Staff only
-userRoutes.get('/register/user',                    tokenValidation, usersView.index);
+if (process.env.ENVIRONMENT !== 'production') {
+  // Get all users, for Staff only
+  userRoutes.get('/register/user',                    tokenValidation, usersView.index);
+}
 
 // Find user by name
 userRoutes.get('/register/user/:name',              tokenValidation, usersView.name);

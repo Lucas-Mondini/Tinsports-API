@@ -5,8 +5,10 @@ import FriendsView from '../views/FriendsView';
 const friendRoutes = Router();
 const friendView = new FriendsView();
 
-// Get all friends, for Staff only
-friendRoutes.get('/friends',                 tokenValidation, friendView.index);
+if (process.env.ENVIRONMENT !== 'production') {
+  // Get all friends, for Staff only
+  friendRoutes.get('/friends',                 tokenValidation, friendView.index);
+}
 
 // Get friend by the user id
 friendRoutes.get('/friend',                  tokenValidation, friendView.get);

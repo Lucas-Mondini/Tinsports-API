@@ -5,14 +5,16 @@ import GameView from '../views/GameView';
 const gameRoutes = Router();
 const gameView = new GameView();
 
-// Debug - Get all games
-gameRoutes.get("/games",         tokenValidation, gameView.index);
+if (process.env.ENVIRONMENT !== 'production') {
+  // Debug - Get all games
+  gameRoutes.get("/games",         tokenValidation, gameView.index);
+}
 
 // Register a new game
 gameRoutes.post("/games",        tokenValidation, gameView.save);
 
 // Update game
-gameRoutes.put('/games/:_id',    tokenValidation, gameView.update);
+gameRoutes.put('/games',         tokenValidation, gameView.update);
 
 // Get all games involving the user
 gameRoutes.get('/games/home',    tokenValidation, gameView.getHome);

@@ -202,11 +202,17 @@ export default class GameController extends DefaultController {
 
       const gameEdit = await Game.findOne({_id, deletedAt: null});
 
-      if (!game || game.host_ID !== host_ID) {
-        return {status: 401, message: "Game doesn't exist or you are not the host"};
+      if (!gameEdit || gameEdit.host_ID !== host_ID) {
+        return {status: 404, message: "Game doesn't exist, was finished, or you are not the host"};
       }
 
-      let userUpdate = {
+      await this.finishedGameLogic(gameEdit)
+
+      if (gameEdit.finished) {
+        return {status: 405, message: "You can't edit a finished game"};
+      }
+
+      let gameUpdate = {
         name: (name) ? name : gameEdit.name,
         type: (type) ? type : gameEdit.type,
         location: (location) ? location : gameEdit.location,
@@ -216,7 +222,16 @@ export default class GameController extends DefaultController {
         description: (description) ? description : null
       }
 
-      await gameEdit.updateOne(userUpdate);
+      const nowDateString = moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
+      const gameDateString = moment(gameUpdate.date).format("YYYY-MM-DD[T]HH:mm");
+      const now = Number(new Date(nowDateString));
+      const gameDate = Number(new Date(gameDateString));
+
+      if (gameDate <= now) {
+        return {status: 401, error: "The event date cannot be less than the current date"};
+      }
+
+      await gameEdit.updateOne(gameUpdate);
       await gameEdit.save();
 
       await new GameNotification().createNewGameNotification(gameEdit);
