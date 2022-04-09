@@ -1,5 +1,6 @@
 import User from "../model/userModel";
 import Game from "../model/gameModel";
+import moment from "moment-timezone";
 
 export default class Equalizer {
   async equalize()
@@ -27,6 +28,9 @@ export default class Equalizer {
 
       if (!user.deletedAt) {
         user.deletedAt = null;
+      }
+      if (!user.premiumTill) {
+        user.premiumTill = moment().tz("America/Sao_paulo");
       }
 
       user.save();

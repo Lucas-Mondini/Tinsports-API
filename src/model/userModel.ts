@@ -13,6 +13,7 @@ export type UserType = {
   newEmail: string;
   photo: string;
   premium: boolean;
+  premiumTill: string;
   deletedAt?: string;
   updateOne: (data: object) => void;
   save: () => void;
@@ -54,6 +55,9 @@ const User = new mongoose.Schema({
   confirmed:{
     type: Boolean,
     required: true
+  },
+  premiumTill: {
+    type: String
   },
   deletedAt: {
     type: String

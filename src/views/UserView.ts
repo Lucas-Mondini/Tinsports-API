@@ -129,8 +129,9 @@ export default class UserView extends DefaultView {
   premium = async(req: Request, res: Response) =>
   {
     const {_id} = req.user;
+    const months = 1;
 
-    const response = await this.userController.updateUserToPremium(_id);
+    const response = await this.userController.updateUserToPremium(_id, months);
 
     this.treatError(res, response);
   }

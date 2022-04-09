@@ -423,19 +423,24 @@ export default class UserController extends DefaultController
    * Update user ro premium
    * @param _id user id
    */
-  async updateUserToPremium(_id: string)
+  async updateUserToPremium(_id: string, months: number)
   {
     try {
+      if(!months)
+        months = 1;
+
+      const now = moment().tz("America/Sao_paulo");
+      const _premiumTill = moment(now).add(months, 'M');
       const user = await User.findOne({_id, deletedAt: null});
 
       if (!user) return {status: 404, message: "User not found"}
 
       if (user.premium) return {status: 403, message: "User is premium already"}
 
-      await user.updateOne({premium: true});
+      await user.updateOne({premium: true, premiumTill: _premiumTill});
       await user.save();
 
-      return {message: "User is now premium"}
+      return {message: "User is now premium for " + months + " months"}
     } catch(error) {
       logger.error(error);
       return {status: 500, message: "Ops! Something went wrong"}
