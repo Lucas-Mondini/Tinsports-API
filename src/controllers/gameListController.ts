@@ -190,26 +190,32 @@ export default class GameListController extends DefaultController
 
     if (!game) return {status: 404, message: "Game doesn't exist'"};
 
-    const gameLists = await GameList.find({game_ID: game._id, confirmed: true});
-    const host = await User.findOne({_id: game.host_ID});
-    const gameInfo = {
-      host: host.name,
-      event: game.name, eventLocation: game.location,
-      eventDate: moment(game.date).format("DD/MM/YYYY"),
-      eventHour: moment(game.date).format("HH:mm")
-    }
+    const nowDateString = moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
+    const gameDateString = moment(game.date).subtract(1, 'hours').format("YYYY-MM-DD[T]HH:mm");
+    const notify = Number(new Date(nowDateString)) === Number(new Date(gameDateString));
 
-    for (const gameList of gameLists) {
-      const user = await User.findOne({_id: gameList.user_ID});
+    if (notify) {
+      const gameLists = await GameList.find({game_ID: game._id, confirmed: true});
+      const host = await User.findOne({_id: game.host_ID});
+      const gameInfo = {
+        host: host.name,
+        event: game.name, eventLocation: game.location,
+        eventDate: moment(game.date).format("DD/MM/YYYY"),
+        eventHour: moment(game.date).format("HH:mm")
+      }
 
-      if (!user) continue;
+      for (const gameList of gameLists) {
+        const user = await User.findOne({_id: gameList.user_ID});
 
-      const mail = new MailTemplateConfigurator({...gameInfo, name: user.name}, "notifyInvitedUser"),
-            data = await mail.renderTemplate();
+        if (!user) continue;
 
-      new Mailer({
-        to: user.email, subject: `O jogo de ${host.name} está prestes a começar!`, html: data
-      }).sendMail();
+        const mail = new MailTemplateConfigurator({...gameInfo, name: user.name}, "notifyInvitedUser"),
+              data = await mail.renderTemplate();
+
+        new Mailer({
+          to: user.email, subject: `O jogo de ${host.name} está prestes a começar!`, html: data
+        }).sendMail();
+      }
     }
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "Tinsports-API",
-  "version": "1.0.0ob",
+  "version": "1.0.1ob",
   "description": "Mobile event manager app - Tinsports",
   "main": "index.js",
   "scripts": {

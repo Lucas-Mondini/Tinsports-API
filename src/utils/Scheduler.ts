@@ -27,8 +27,7 @@ export default class Scheduler
             nowNumber = Number(new Date(now)),
             gameDateNumber = Number(new Date(gameDate));
 
-
-      if (gameDateNumber < nowNumber) {
+      if (gameDateNumber > nowNumber) {
         await gameRecurrence.createNewGameRecurrence(game);
         await gameNotification.createNewGameNotification(game);
       }

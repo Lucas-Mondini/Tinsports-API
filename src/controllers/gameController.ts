@@ -16,18 +16,22 @@ export default class GameController extends DefaultController {
   /**
    * Debug - Get all games
    */
-  async getAllGames()
+  async getAllGames(deleteAll: boolean)
   {
     try {
       const games = await Game.find();
       const gameLists = await GameList.find();
 
-      /* for (const game of games) {
+      for (const game of games) {
         await this.finishedGameLogic(game);
       }
 
-      await this.destroyObjectArray(games);
-      await this.destroyObjectArray(gameLists); */
+      if (deleteAll) {
+        await this.destroyObjectArray(games);
+        await this.destroyObjectArray(gameLists);
+
+        return {message: "All games deleted successfully"}
+      }
 
       return games;
     } catch (error) {

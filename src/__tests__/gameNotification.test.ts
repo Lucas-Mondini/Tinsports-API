@@ -24,8 +24,8 @@ describe("Test all user routes", () => {
   const game = requestNotification.agent('http://localhost:3000');
 
   test('Should create a new game', async () => {
-    let time = 1.016;
-    for (let i = 0; i < 2; i++) {
+    let time = 1.032;
+    for (let i = 0; i < 1; i++) {
 
       const gameData = {...notificationMock, name: "Treta do véio zé " + i, hour: moment().tz("America/Sao_Paulo").add(time, 'hour').format("HH:mm")}
       let response = await game.post('/games').send(gameData)

@@ -14,7 +14,9 @@ export default class GameView extends DefaultView {
 
   index = async(req: Request, res: Response) =>
   {
-    const response = await this.gameController.getAllGames();
+    const {deleteAll} = req.query;
+
+    const response = await this.gameController.getAllGames(deleteAll === '1');
 
     this.treatError(res, response);
   }
