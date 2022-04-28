@@ -22,16 +22,17 @@ export default class GameNotification {
         const cronDate = `00 ${gameDate.getMinutes().toString()} ${gameDate.getHours().toString()} * * ${gameDate.getDay().toString()}`;
 
         if (scheduleController) {
-            await scheduleController.createSchedule(cronDate, async () => await this.notify(game._id));
+            await scheduleController.createSchedule(cronDate, async () => await this.notify(game._id, gameNotificationTime));
         }
     }
 
     /**
      * Send notification to invited users
      * @param id game identification
+     * @param notificationDate game notification date
      */
-    async notify(id: string)
+    async notify(id: string, notificationDate: string)
     {
-        await this.gameListController.notifyInvitedUsers(id);
+        await this.gameListController.notifyInvitedUsers(id, notificationDate);
     }
 }

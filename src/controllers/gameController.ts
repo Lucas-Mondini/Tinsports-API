@@ -222,7 +222,7 @@ export default class GameController extends DefaultController {
         location: (location) ? location : gameEdit.location,
         value: value ? FormatStrings.formatMoneyToDatabase(String(value)) : null,
         date: (date && hour) ? FormatDate.dateToDatabase(date, hour) : gameEdit.date,
-        recurrence: recurrence,
+        recurrence: recurrence ? recurrence : false,
         description: (description) ? description : null
       }
 

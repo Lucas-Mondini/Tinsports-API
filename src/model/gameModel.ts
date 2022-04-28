@@ -7,7 +7,7 @@ export type GameType = {
   location: string;
   date: string;
   description: string;
-  value: number;
+  value: number | string;
   host_ID: string;
   hour: string;
   finished: boolean;

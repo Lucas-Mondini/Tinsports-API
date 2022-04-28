@@ -27,11 +27,8 @@ export default class FormatStrings {
   static formatMoneyToDatabase(value: string) {
     if (!value) return;
 
-    const money = value.replace(',', '.');
-
-    if (money.indexOf('.') !== -1) {
-      money.replace('.', "");
-    }
+    let money = value.replace('.', "");
+    money = money.replace(',', '.');
 
     return Number(money).toFixed(2);
   }

@@ -184,15 +184,14 @@ export default class GameListController extends DefaultController
    * Notify users that the game is about to start
    * @param gameId
    */
-  async notifyInvitedUsers(gameId: string)
+  async notifyInvitedUsers(gameId: string, jobDate: string)
   {
     const game = await Game.findOne({_id: gameId});
 
     if (!game) return {status: 404, message: "Game doesn't exist'"};
 
-    const nowDateString = moment().tz("America/Sao_Paulo").format("YYYY-MM-DD[T]HH:mm");
     const gameDateString = moment(game.date).subtract(1, 'hours').format("YYYY-MM-DD[T]HH:mm");
-    const notify = Number(new Date(nowDateString)) === Number(new Date(gameDateString));
+    const notify = jobDate === gameDateString;
 
     if (notify) {
       const gameLists = await GameList.find({game_ID: game._id, confirmed: true});

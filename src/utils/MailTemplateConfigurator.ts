@@ -4,6 +4,7 @@ import ejs from 'ejs';
 interface Data {
   name?: string;
   friend?: string;
+  user?: string;
   code?: number;
   host?: string;
   event?: string;

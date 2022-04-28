@@ -46,7 +46,7 @@ export default class FriendListController {
 
       await friends.save();
 
-      const mail = new MailTemplateConfigurator({friend: user.name, name: friend.name}, "inviteUser"),
+      const mail = new MailTemplateConfigurator({user: user.name, friend: friend.name}, "inviteFriend"),
             data = await mail.renderTemplate();
 
       new Mailer({
