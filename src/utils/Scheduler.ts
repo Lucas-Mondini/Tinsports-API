@@ -5,6 +5,8 @@ import ScheduleController from "../controllers/scheduleController";
 import Game from "../model/gameModel";
 import GameRecurrence from "../services/gameRecurrence";
 import GameNotification from "../services/gameNotification";
+import UserController from "../controllers/userController";
+import User, { UserType } from "../model/userModel";
 import logger from "./logger";
 
 export default class Scheduler
@@ -33,6 +35,16 @@ export default class Scheduler
         await gameNotification.createNewGameNotification(game);
       }
     }
+  }
+
+  async premiumUpdate() {
+    let userController = new UserController();
+    let users = await userController.getAllUsers();
+
+    for (let user of users) {
+        //comparar a data
+    }
+
   }
 
   async scheduleUpdate()

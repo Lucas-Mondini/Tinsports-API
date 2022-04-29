@@ -30,7 +30,7 @@ export default class Equalizer {
         user.deletedAt = null;
       }
       if (!user.premiumTill) {
-        user.premiumTill = moment().tz("America/Sao_paulo");
+        user.premiumTill = null;
       }
 
       user.save();
